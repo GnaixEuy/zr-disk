@@ -16,8 +16,9 @@ spring:
     password:
 #    dbs: 0,1,3,5
 mybatis-plus:
-#  mapper-locations: classpath:cn/gnaixeuy/redbook/dao/impl/*.xml
-#  type-aliases-package: cn.gnaixeuy.redbook.entity
+  mapper-locations: classpath:cn/realandy/zrdisk/dao/impl/*.xml
+  type-aliases-package: cn.realandy.zrdisk.entity
+  type-enums-package: cn.realandy.zrdisk.enmus
   configuration:
     default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
     map-underscore-to-camel-case: true

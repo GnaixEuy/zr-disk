@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.realandy.zrdisk.dao.UserDao">
+    <resultMap id="userResultMap" type="cn.realandy.zrdisk.entity.User">
+        <id column="id" property="id"/>
+        <result column="phone" property="phone"/>
+        <result column="password" property="password"/>
+        <result column="nickname" property="nickname"/>
+        <result column="enabled" property="enabled"/>
+        <result column="locked" property="locked"/>
+        <result column="created_date_time" property="createdDateTime"/>
+        <result column="updated_date_time" property="updatedDateTime"/>
+        <result column="drive_size" property="driveSize"/>
+        <result column="drive_used" property="driveUsed"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="open_id" property="openId"/>
+        <result column="is_vip" property="isVip"/>
+        <result column="gender" property="gender"/>
+        <!--        <association property="headImg" column="head_img_id" resultMap="" javaType=""/>-->
+        <collection property="roles" javaType="java.util.ArrayList" ofType="cn.realandy.zrdisk.entity.Role"
+                    select="findRoles" column="id"/>
+    </resultMap>
+    <select id="findRoles" resultType="cn.realandy.zrdisk.entity.Role">
+        SELECT *
+        FROM role
+        WHERE role.id IN (SELECT role_id AS id
+                          FROM user_role_associated
+                                   INNER JOIN `user` ON `user`.id = user_role_associated.user_id
+                              AND `user`.id = #{id})
+    </select>
+</mapper>
