@@ -4,7 +4,7 @@ spring:
   datasource:
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
-    url: jdbc:${DATABASE_TYPE}://${MYSQL_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:${DATABASE_TYPE}://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     druid:
       max-active: 20
@@ -29,6 +29,18 @@ aliyun:
   accessKeyId: ${ALIYUN_ACCESS_KEY_ID}
   secret: ${ALIYUN_SECRET}
 
-
+alipay:
+  # 支付宝网关地址
+  url: ${ALIPAY_URL}
+  # 支付宝沙箱商家appid
+  appid: ${ALIPAY_APPID}
+  # 沙箱私钥
+  privateKey: ${ALIPAY_PRIVATE_KEY}
+  # 沙箱公钥
+  publicKey: ${ALIPAY_PUBLIC_KEY}
+  # 订单支付成功后的回调地址(内网映射)
+  notifyUrl: ${ALIPAY_NOTIFY_URL}
+  # 跳转返回页面不可为本地页面，例如；http://127.0.0.1:8020/test/order.html 支付宝校验时会将当前订单视作有操作风险
+  returnUrl: ${ALIPAY_RETURN_URL}
 
 
