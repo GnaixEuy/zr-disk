@@ -26,4 +26,11 @@ public interface UserService extends IService<User>, UserDetailsService {
      */
     UserDto addUser(UserCreateRequest userCreateRequest);
 
+    /**
+     * 获取当前登录用户
+     *
+     * @return 返回当前登录用户
+     */
+    User getCurrentUser();
+
 }

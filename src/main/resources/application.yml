@@ -10,6 +10,7 @@ spring:
         enabled: true
         login-username: admin
         login-password: admin
+      default-auto-commit: true
   redis:
     host:
     port:
@@ -22,6 +23,7 @@ mybatis-plus:
   configuration:
     default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: assign_uuid

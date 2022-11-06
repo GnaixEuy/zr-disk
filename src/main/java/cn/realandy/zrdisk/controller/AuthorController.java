@@ -32,7 +32,6 @@ public class AuthorController {
 
     @PostMapping(value = {"/registerByPhone"})
     public ResponseResult<String> registerByPhone(@RequestBody RegisteredUserByPhoneRequest registeredUserByPhoneRequest) {
-        System.out.println(registeredUserByPhoneRequest);
         String tokenByPhone = this.loginService.createTokenByPhone(registeredUserByPhoneRequest);
         return ResponseResult.success(tokenByPhone);
     }
