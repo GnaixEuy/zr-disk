@@ -3,12 +3,12 @@ package cn.realandy.zrdisk.service.impl;
 import cn.realandy.zrdisk.config.RedisConfig;
 import cn.realandy.zrdisk.dao.RoleDao;
 import cn.realandy.zrdisk.dao.UserDao;
-import cn.realandy.zrdisk.dao.relation.UserRoleAssociateDao;
+import cn.realandy.zrdisk.dao.relation.UserRoleAssociatedDao;
 import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.enmus.RedisDbType;
 import cn.realandy.zrdisk.entity.Role;
 import cn.realandy.zrdisk.entity.User;
-import cn.realandy.zrdisk.entity.relation.UserRoleAssociate;
+import cn.realandy.zrdisk.entity.relation.UserRoleAssociated;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
@@ -17,8 +17,10 @@ import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +45,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
      */
     private UserMapper userMapper;
     private RoleDao roleDao;
-    private UserRoleAssociateDao userRoleAssociateDao;
+    private UserRoleAssociatedDao userRoleAssociateDao;
+    private PasswordEncoder passwordEncoder;
     private RedisConfig redisConfig;
 
     /**
@@ -74,6 +77,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     public UserDto addUser(UserCreateRequest userCreateRequest) {
         User user = this.userMapper.userCreateRequst2Entity(userCreateRequest);
         user.setCreatedDateTime(new Date());
+        user.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
+        System.out.println(user);
         int result = this.baseMapper.insert(user);
         if (result != 1) {
             throw new BizException(ExceptionType.USER_CREATE_EXCEPTION);
@@ -86,7 +91,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
             throw new BizException(ExceptionType.USER_NOT_FOUND);
         }
         //默认新用户赋予用户权限
-        int authorizeResult = this.userRoleAssociateDao.insert(new UserRoleAssociate(1, user.getId()));
+        int authorizeResult = this.userRoleAssociateDao.insert(new UserRoleAssociated(1, user.getId()));
         if (authorizeResult != 1) {
             throw new BizException(ExceptionType.AUTHORIZATION_EXCEPTION);
         }
@@ -109,8 +114,14 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     @Autowired
-    public void setUserRoleAssociateDao(UserRoleAssociateDao userRoleAssociateDao) {
+    public void setUserRoleAssociateDao(UserRoleAssociatedDao userRoleAssociateDao) {
         this.userRoleAssociateDao = userRoleAssociateDao;
+    }
+
+    @Lazy
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Autowired

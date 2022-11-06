@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
@@ -17,13 +19,15 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserCreateRequest {
+public class RegisteredUserByPhoneRequest {
 
+    @NotNull
     private String phone;
-    private String openIdWechat;
-    private boolean enabled;
-    private boolean locked;
+    @NotNull
     private String password;
+    @NotNull
     private String nickname;
+    @NotNull
+    private String realVerificationCode;
 
 }

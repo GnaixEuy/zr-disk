@@ -1,6 +1,7 @@
 package cn.realandy.zrdisk.entity;
 
 import cn.realandy.zrdisk.enmus.Gender;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -37,7 +38,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @TableName(value = "user", resultMap = "userResultMap")
 public class User implements UserDetails {
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Integer id;
     @TableField
     private String phone;

@@ -1,6 +1,6 @@
 package cn.realandy.zrdisk.service;
 
-import cn.realandy.zrdisk.vo.TokenByPhoneCreateRequest;
+import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -25,10 +25,10 @@ public interface LoginService {
     /**
      * 通过手机方式登录
      *
-     * @param tokenByPhoneCreateRequest 手机登录方式包装对象 手机号和验证码
+     * @param registeredUserByPhoneRequest 手机注册方式包装对象 手机号和验证码 昵称密码
      * @return token
      */
-    String createTokenByPhone(TokenByPhoneCreateRequest tokenByPhoneCreateRequest);
+    String createTokenByPhone(RegisteredUserByPhoneRequest registeredUserByPhoneRequest);
 
 }
 

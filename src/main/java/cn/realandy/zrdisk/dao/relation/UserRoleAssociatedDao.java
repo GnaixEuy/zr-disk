@@ -1,6 +1,6 @@
 package cn.realandy.zrdisk.dao.relation;
 
-import cn.realandy.zrdisk.entity.relation.UserRoleAssociate;
+import cn.realandy.zrdisk.entity.relation.UserRoleAssociated;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -15,6 +15,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @see <a href="https://github.com/GnaixEuy"> GnaixEuy的GitHub </a>
  */
 @Mapper
-public interface UserRoleAssociateDao extends BaseMapper<UserRoleAssociate> {
+public interface UserRoleAssociatedDao extends BaseMapper<UserRoleAssociated> {
 }
 

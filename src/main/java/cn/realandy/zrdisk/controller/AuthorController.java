@@ -2,12 +2,10 @@ package cn.realandy.zrdisk.controller;
 
 import cn.realandy.zrdisk.service.LoginService;
 import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -30,6 +28,13 @@ public class AuthorController {
     public ResponseResult<String> getVerificationCode(@PathVariable String phoneNumber) {
         this.loginService.getPhoneVerificationCode(phoneNumber);
         return ResponseResult.success("短信发送成功");
+    }
+
+    @PostMapping(value = {"/registerByPhone"})
+    public ResponseResult<String> registerByPhone(@RequestBody RegisteredUserByPhoneRequest registeredUserByPhoneRequest) {
+        System.out.println(registeredUserByPhoneRequest);
+        String tokenByPhone = this.loginService.createTokenByPhone(registeredUserByPhoneRequest);
+        return ResponseResult.success(tokenByPhone);
     }
 
     @Autowired

@@ -12,9 +12,8 @@ import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.LoginService;
 import cn.realandy.zrdisk.service.UserService;
-import cn.realandy.zrdisk.utils.SmsUtils;
 import cn.realandy.zrdisk.utils.ValidateCodeUtils;
-import cn.realandy.zrdisk.vo.TokenByPhoneCreateRequest;
+import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -70,7 +69,7 @@ public class LoginServiceImpl implements LoginService {
         redisTemplateByDb.opsForValue().set(phoneNumber, verificationCode, this.phoneVerificationCodeLiveTime, TimeUnit.SECONDS);
         try {
             //TODO 发送功能已正常，模版未申请
-            SmsUtils.sendMessage("阿里云短信测试", "SMS_154950909", phoneNumber, String.valueOf(verificationCode));
+//            SmsUtils.sendMessage("阿里云短信测试", "SMS_154950909", phoneNumber, String.valueOf(verificationCode));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,25 +80,27 @@ public class LoginServiceImpl implements LoginService {
     /**
      * 通过手机方式登录
      *
-     * @param tokenByPhoneCreateRequest 手机登录方式包装对象 手机号和验证码
+     * @param registeredUserByPhoneRequest 手机注册方式包装对象 手机号和验证码 昵称密码
      * @return token
      */
     @Override
-    public String createTokenByPhone(TokenByPhoneCreateRequest tokenByPhoneCreateRequest) {
+    public String createTokenByPhone(RegisteredUserByPhoneRequest registeredUserByPhoneRequest) {
         String realVerificationCode = String.valueOf(this.redisConfig
                 .getRedisTemplateByDb(RedisDbType.PHONE_VERIFICATION_CODE.getCode())
                 .opsForValue()
-                .getAndDelete(tokenByPhoneCreateRequest.getPhoneNumber()));
+                .getAndDelete(registeredUserByPhoneRequest.getPhone()));
         if (realVerificationCode == null || "null".equals(realVerificationCode)) {
             throw new BizException(ExceptionType.PHONE_VERIFICATION_EXPIRED);
         }
-        if (!StrUtil.equals(tokenByPhoneCreateRequest.getVerificationCode(), realVerificationCode)) {
+        if (!registeredUserByPhoneRequest.getRealVerificationCode().equals(realVerificationCode)) {
             throw new BizException(ExceptionType.PHONE_VERIFICATION_CODE_ERROR);
         }
-        UserDetails user = this.userService.loadUserByUsername(tokenByPhoneCreateRequest.getPhoneNumber());
+        UserDetails user = this.userService.loadUserByUsername(registeredUserByPhoneRequest.getPhone());
         if (ObjectUtil.isNull(user)) {
             UserDto userDto = this.userService.addUser(new UserCreateRequest() {{
-                this.setPhone(tokenByPhoneCreateRequest.getPhoneNumber());
+                this.setPhone(registeredUserByPhoneRequest.getPhone());
+                this.setPassword(registeredUserByPhoneRequest.getPassword());
+                this.setNickname(registeredUserByPhoneRequest.getNickname());
                 this.setEnabled(true);
                 this.setLocked(false);
             }});

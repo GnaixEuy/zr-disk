@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName(value = "user_role_associate")
-public class UserRoleAssociate {
+@TableName(value = "user_role_associated")
+public class UserRoleAssociated {
 
     @TableField(value = "role_id")
     private Integer roleId;

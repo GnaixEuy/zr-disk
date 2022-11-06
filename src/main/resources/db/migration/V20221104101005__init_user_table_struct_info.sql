@@ -7,7 +7,7 @@ CREATE TABLE `disk`.`user`
     `nickname`          varchar(32)  NOT NULL COMMENT '昵称',
     `gender`            int          NULL COMMENT '用户性别',
     `head_img_id`       varchar(255) NULL COMMENT '头像文件关联',
-    `enable`            tinyint(1)   NOT NULL DEFAULT 1 COMMENT '账户是否启用',
+    `enabled`           tinyint(1)   NOT NULL DEFAULT 1 COMMENT '账户是否启用',
     `locked`            tinyint(1)   NOT NULL DEFAULT 0 COMMENT '账户是否封禁',
     `created_date_time` datetime     NULL COMMENT '创建时间',
     `updated_date_time` datetime     NULL COMMENT '更新时间',

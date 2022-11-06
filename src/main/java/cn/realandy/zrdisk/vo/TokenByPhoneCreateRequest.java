@@ -24,7 +24,7 @@ public class TokenByPhoneCreateRequest {
 
     @NotBlank(message = "电话号码不能为空")
     @Size(min = 4, max = 64, message = "电话号码长度应该在4个字符到64个字符之间")
-    private String phoneNumber;
+    private String phone;
 
     @NotBlank(message = "验证码不能为空")
     @Size(min = 6, max = 64, message = "验证码长度应该在6个字符到64个字符之间")
