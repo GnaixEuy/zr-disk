@@ -6,7 +6,7 @@ CREATE TABLE `disk`.`file`
     `ext`          varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '文件后缀名',
     `size`         int                                                   NOT NULL DEFAULT 0 COMMENT '文件大小；单位byte',
     `type`         int                                                   NOT NULL DEFAULT 0 COMMENT '文件类型，1-AUDIO-音频，2-IMAGE-图片，3-VIDEO-视频,4-压缩文件，0-OTHER-其他',
-    `uploder_id`   int                                                   NOT NULL DEFAULT '1' COMMENT '创建者用户ID',
+    `uploader_id`  int                                                   NOT NULL DEFAULT '1' COMMENT '创建者用户ID',
     `created_time` datetime(6)                                           NOT NULL COMMENT '创建时间',
     `updated_time` datetime(6)                                           NOT NULL COMMENT '更新时间',
     `delete`       tinyint(1)                                            NOT NULL DEFAULT 0 COMMENT '是否删除',
@@ -16,5 +16,5 @@ CREATE TABLE `disk`.`file`
     `storage`      varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL     DEFAULT '1' COMMENT '存储供应商，1-COS-腾讯云存储，2-OSS-阿里云存储',
     `status`       int                                                   NULL     DEFAULT 1 COMMENT '文件状态，1-UPLOADING-上传中，2-UPLOADED-已上传，3-CANCEL-已取消',
     PRIMARY KEY (`id`),
-    CONSTRAINT `file_uploder_id` FOREIGN KEY (`uploder_id`) REFERENCES `disk`.`user` (`id`)
+    CONSTRAINT `file_uploader_id` FOREIGN KEY (uploader_id) REFERENCES `disk`.`user` (`id`)
 ) COMMENT = '文件表';

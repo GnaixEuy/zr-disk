@@ -4,11 +4,18 @@ import cn.realandy.zrdisk.enmus.Gender;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -27,12 +34,15 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 @TableName(value = "user", resultMap = "userResultMap")
-public class User {
+public class User implements UserDetails {
     @TableId
     private Integer id;
     @TableField
     private String phone;
+    @TableField
+    private String email;
     @TableField
     private String password;
     @TableField
@@ -49,6 +59,8 @@ public class User {
     @TableField
     private Date updatedDateTime;
     @TableField
+    private Date birthday;
+    @TableField
     private BigDecimal driveSize;
     @TableField
     private BigDecimal driveUsed;
@@ -58,13 +70,43 @@ public class User {
     private Date lastLoginTime;
     @TableField
     private String openId;
-    @TableField
-    private boolean isVip;
+
+    //TODO VIP机制
+//    @TableField
+//    private boolean isVip;
     @TableField(exist = false)
     private File headImg;
     @TableField(exist = false)
     private List<Role> roles;
 
+
+    @Override
+    @JsonIgnore
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        this.roles.forEach(item -> authorities.add(new SimpleGrantedAuthority(item.getName())));
+        return authorities;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.phone;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return this.enabled;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !this.locked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
 }
 

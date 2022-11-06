@@ -4,18 +4,21 @@
     <resultMap id="userResultMap" type="cn.realandy.zrdisk.entity.User">
         <id column="id" property="id"/>
         <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
         <result column="password" property="password"/>
         <result column="nickname" property="nickname"/>
         <result column="enabled" property="enabled"/>
         <result column="locked" property="locked"/>
         <result column="created_date_time" property="createdDateTime"/>
         <result column="updated_date_time" property="updatedDateTime"/>
+        <result column="birthday" property="birthday"/>
         <result column="drive_size" property="driveSize"/>
         <result column="drive_used" property="driveUsed"/>
         <result column="last_login_ip" property="lastLoginIp"/>
         <result column="last_login_time" property="lastLoginTime"/>
         <result column="open_id" property="openId"/>
-        <result column="is_vip" property="isVip"/>
+        <!--        TODO VIP机制-->
+        <!--        <result column="is_vip" property="isVip"/>-->
         <result column="gender" property="gender"/>
         <!--        <association property="headImg" column="head_img_id" resultMap="" javaType=""/>-->
         <collection property="roles" javaType="java.util.ArrayList" ofType="cn.realandy.zrdisk.entity.Role"
