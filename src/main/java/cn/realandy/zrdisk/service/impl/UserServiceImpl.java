@@ -18,6 +18,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -78,7 +80,6 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         User user = this.userMapper.userCreateRequst2Entity(userCreateRequest);
         user.setCreatedDateTime(new Date());
         user.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
-        System.out.println(user);
         int result = this.baseMapper.insert(user);
         if (result != 1) {
             throw new BizException(ExceptionType.USER_CREATE_EXCEPTION);
@@ -101,6 +102,34 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         roles.add(role);
         user.setRoles(roles);
         return this.userMapper.entity2Dto(user);
+    }
+
+
+    /**
+     * 获取当前登录用户
+     *
+     * @return 返回当前登录用户
+     */
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return (User) this.loadUserByUsername(authentication.getName());
+    }
+
+    /**
+     * 更新用户密码
+     *
+     * @param password 密码
+     * @return 是否成功
+     */
+    @Override
+    public boolean updateUserPassword(String password) {
+        String encode = this.passwordEncoder.encode(password);
+        User currentUser = this.getCurrentUser();
+        currentUser.setPassword(encode);
+        if (1 != this.baseMapper.updateById(currentUser)) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        return true;
     }
 
     @Autowired

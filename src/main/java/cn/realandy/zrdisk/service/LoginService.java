@@ -1,5 +1,6 @@
 package cn.realandy.zrdisk.service;
 
+import cn.realandy.zrdisk.vo.LoginByPhoneAndPasswordRequest;
 import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 
 /**
@@ -29,6 +30,14 @@ public interface LoginService {
      * @return token
      */
     String createTokenByPhone(RegisteredUserByPhoneRequest registeredUserByPhoneRequest);
+
+    /**
+     * 通过手机和密码登陆获取token
+     *
+     * @param loginByPhoneAndPasswordRequest 手机号和密码封包
+     * @return token
+     */
+    String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest);
 
 }
 

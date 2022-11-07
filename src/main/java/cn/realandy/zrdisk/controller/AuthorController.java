@@ -2,6 +2,7 @@ package cn.realandy.zrdisk.controller;
 
 import cn.realandy.zrdisk.service.LoginService;
 import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.LoginByPhoneAndPasswordRequest;
 import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +33,14 @@ public class AuthorController {
 
     @PostMapping(value = {"/registerByPhone"})
     public ResponseResult<String> registerByPhone(@RequestBody RegisteredUserByPhoneRequest registeredUserByPhoneRequest) {
-        System.out.println(registeredUserByPhoneRequest);
         String tokenByPhone = this.loginService.createTokenByPhone(registeredUserByPhoneRequest);
         return ResponseResult.success(tokenByPhone);
+    }
+
+    @PostMapping(value = {"/login"})
+    public ResponseResult<String> loginByPhone(@RequestBody LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
+        System.out.println(loginByPhoneAndPasswordRequest);
+        return ResponseResult.success(this.loginService.getTokenByPhoneAndPassword(loginByPhoneAndPasswordRequest));
     }
 
     @Autowired

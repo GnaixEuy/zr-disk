@@ -13,15 +13,18 @@ import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.LoginService;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.utils.ValidateCodeUtils;
+import cn.realandy.zrdisk.vo.LoginByPhoneAndPasswordRequest;
 import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -48,6 +51,8 @@ public class LoginServiceImpl implements LoginService {
     private RedisConfig redisConfig;
     private UserService userService;
     private UserMapper userMapper;
+
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 请求手机验证码
@@ -109,6 +114,23 @@ public class LoginServiceImpl implements LoginService {
         return tokenVerifyAndGenerated((User) user);
     }
 
+    /**
+     * 通过手机和密码登陆获取token
+     *
+     * @param loginByPhoneAndPasswordRequest 手机号和密码封包
+     * @return token
+     */
+    @Override
+    public String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
+        User user = this.userService.getOne(Wrappers
+                .<User>lambdaQuery()
+                .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone()));
+        if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), this.passwordEncoder.encode(loginByPhoneAndPasswordRequest.getPassword()))) {
+            throw new BizException(ExceptionType.USER_PASSWORD_NOT_MATCH);
+        }
+        return tokenVerifyAndGenerated(user);
+    }
+
     private String tokenVerifyAndGenerated(User user) {
         if (!user.isEnabled()) {
             throw new BizException(ExceptionType.USER_NOT_ENABLED);
@@ -144,5 +166,10 @@ public class LoginServiceImpl implements LoginService {
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
         this.userMapper = userMapper;
+    }
+
+    @Autowired
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 }
