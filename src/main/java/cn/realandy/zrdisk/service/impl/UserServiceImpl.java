@@ -80,7 +80,6 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         User user = this.userMapper.userCreateRequst2Entity(userCreateRequest);
         user.setCreatedDateTime(new Date());
         user.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
-        System.out.println(user);
         int result = this.baseMapper.insert(user);
         if (result != 1) {
             throw new BizException(ExceptionType.USER_CREATE_EXCEPTION);

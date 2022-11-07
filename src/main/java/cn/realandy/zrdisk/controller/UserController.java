@@ -1,14 +1,18 @@
 package cn.realandy.zrdisk.controller;
 
+import cn.realandy.zrdisk.config.RedisConfig;
+import cn.realandy.zrdisk.enmus.RedisDbType;
+import cn.realandy.zrdisk.entity.User;
+import cn.realandy.zrdisk.exception.BizException;
+import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.ResponseResult;
 import cn.realandy.zrdisk.vo.UserVo;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
 
@@ -28,6 +32,7 @@ public class UserController {
 
     private UserService userService;
     private UserMapper userMapper;
+    private RedisConfig redisConfig;
 
     @GetMapping(value = {"/getUserInfo"})
     @RolesAllowed(value = {"ROLE_USER"})
@@ -41,6 +46,23 @@ public class UserController {
         );
     }
 
+    @PutMapping(value = {"/modifyNick"})
+    public ResponseResult<String> modifyNick(@RequestBody String nickname) {
+        System.out.println(nickname);
+        if (nickname == null || "".equals(nickname)) {
+            return ResponseResult.error("昵称不能为空");
+        }
+        User currentUser = this.userService.getCurrentUser();
+        currentUser.setNickname(nickname);
+        boolean result = this.userService.updateById(currentUser);
+        if (!result) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        RedisTemplate<String, Object> redisTemplateByDb = this.redisConfig.getRedisTemplateByDb(RedisDbType.USER_INFO.getCode());
+        redisTemplateByDb.delete(currentUser.getPhone());
+        return ResponseResult.success("用户名更新成功");
+    }
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -49,5 +71,10 @@ public class UserController {
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
         this.userMapper = userMapper;
+    }
+
+    @Autowired
+    public void setRedisConfig(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
     }
 }
