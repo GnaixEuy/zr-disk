@@ -115,6 +115,23 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         return (User) this.loadUserByUsername(authentication.getName());
     }
 
+    /**
+     * 更新用户密码
+     *
+     * @param password 密码
+     * @return 是否成功
+     */
+    @Override
+    public boolean updateUserPassword(String password) {
+        String encode = this.passwordEncoder.encode(password);
+        User currentUser = this.getCurrentUser();
+        currentUser.setPassword(encode);
+        if (1 != this.baseMapper.updateById(currentUser)) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        return true;
+    }
+
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
         this.userMapper = userMapper;

@@ -33,4 +33,13 @@ public interface UserService extends IService<User>, UserDetailsService {
      */
     User getCurrentUser();
 
+    /**
+     * 更新用户密码
+     *
+     * @param password 密码
+     * @return 是否成功
+     */
+    boolean updateUserPassword(String password);
+
+
 }
