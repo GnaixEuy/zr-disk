@@ -2,7 +2,8 @@ package cn.realandy.zrdisk.controller;
 
 import cn.hutool.json.JSONUtil;
 import cn.realandy.zrdisk.config.RedisConfig;
-import cn.realandy.zrdisk.enmus.RedisDbType;
+import cn.realandy.zrdisk.entity.File;
+import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
@@ -13,7 +14,6 @@ import cn.realandy.zrdisk.vo.UserVo;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
@@ -37,13 +37,18 @@ public class UserController {
     private UserMapper userMapper;
     private RedisConfig redisConfig;
 
+    private TencentCos tencentCos;
+
     @GetMapping(value = {"/getUserInfo"})
     @RolesAllowed(value = {"ROLE_USER"})
     @ApiOperation(value = "通过请求头保存的token，获取当前用户的信息", httpMethod = "GET")
     public ResponseResult<UserVo> me() {
+        User currentUser = this.userService.getCurrentUser();
+        File headImg = currentUser.getHeadImg();
+        headImg.setDownloadUrl(this.tencentCos.getBaseUrl() + headImg.getDownloadUrl());
         return ResponseResult.success(this.userMapper.dto2Vo(
                         this.userMapper.entity2Dto(
-                                this.userService.getCurrentUser()
+                                currentUser
                         )
                 )
         );
@@ -61,8 +66,6 @@ public class UserController {
         if (!result) {
             throw new BizException(ExceptionType.USER_UPDATE_ERROR);
         }
-        RedisTemplate<String, Object> redisTemplateByDb = this.redisConfig.getRedisTemplateByDb(RedisDbType.USER_INFO.getCode());
-        redisTemplateByDb.delete(currentUser.getPhone());
         return ResponseResult.success("用户名更新成功");
     }
 
@@ -89,5 +92,10 @@ public class UserController {
     @Autowired
     public void setRedisConfig(RedisConfig redisConfig) {
         this.redisConfig = redisConfig;
+    }
+
+    @Autowired
+    public void setTencentCos(TencentCos tencentCos) {
+        this.tencentCos = tencentCos;
     }
 }

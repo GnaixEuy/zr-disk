@@ -1,10 +1,7 @@
 package cn.realandy.zrdisk.entity;
 
 import cn.realandy.zrdisk.enmus.Gender;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -14,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,7 +35,7 @@ import java.util.List;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @TableName(value = "user", resultMap = "userResultMap")
-public class User implements UserDetails {
+public class User implements UserDetails, Serializable {
     @TableId(type = IdType.ASSIGN_ID)
     private Integer id;
     @TableField
@@ -55,9 +53,9 @@ public class User implements UserDetails {
     private boolean enabled;
     @TableField
     private boolean locked;
-    @TableField
+    @TableField(value = "created_date_time", fill = FieldFill.INSERT)
     private Date createdDateTime;
-    @TableField
+    @TableField(value = "updated_date_time", fill = FieldFill.INSERT_UPDATE)
     private Date updatedDateTime;
     @TableField
     private Date birthday;

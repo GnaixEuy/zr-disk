@@ -20,16 +20,31 @@
         <!--        TODO VIP机制-->
         <!--        <result column="is_vip" property="isVip"/>-->
         <result column="gender" property="gender"/>
-        <!--        <association property="headImg" column="head_img_id" resultMap="" javaType=""/>-->
+        <association property="headImg" column="head_img_id"
+                     select="selectFileById"
+                     javaType="cn.realandy.zrdisk.entity.File"/>
         <collection property="roles" javaType="java.util.ArrayList" ofType="cn.realandy.zrdisk.entity.Role"
                     select="findRoles" column="id"/>
     </resultMap>
+
+    <update id="updateHeadImgId">
+        UPDATE disk.user
+        SET `head_img_id` = #{fileId}
+        WHERE id = #{user.id};
+    </update>
+
     <select id="findRoles" resultType="cn.realandy.zrdisk.entity.Role">
         SELECT *
         FROM role
         WHERE role.id IN (SELECT role_id AS id
                           FROM user_role_associated
                                    INNER JOIN `user` ON `user`.id = user_role_associated.user_id
-                              AND `user`.id = #{id})
+                              AND `user`.id = #{id});
+    </select>
+
+    <select id="selectFileById" resultMap="cn.realandy.zrdisk.dao.FileDao.fileResultMap">
+        SELECT *
+        FROM disk.file
+        WHERE id = #{head_img_id};
     </select>
 </mapper>
