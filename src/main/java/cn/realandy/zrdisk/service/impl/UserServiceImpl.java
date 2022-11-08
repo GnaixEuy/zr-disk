@@ -5,7 +5,6 @@ import cn.realandy.zrdisk.dao.RoleDao;
 import cn.realandy.zrdisk.dao.UserDao;
 import cn.realandy.zrdisk.dao.relation.UserRoleAssociatedDao;
 import cn.realandy.zrdisk.dto.UserDto;
-import cn.realandy.zrdisk.enmus.RedisDbType;
 import cn.realandy.zrdisk.entity.Role;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.entity.relation.UserRoleAssociated;
@@ -17,6 +16,8 @@ import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,14 +58,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
      * @throws UsernameNotFoundException
      */
     @Override
+    @Cacheable(value = {"userInfo"}, key = "#phone")
     public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
-        User user = (User) this.redisConfig
-                .getRedisTemplateByDb(RedisDbType.USER_INFO.getCode())
-                .opsForValue()
-                .get(phone);
-        if (user != null) {
-            return user;
-        }
         return this.baseMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, phone));
     }
 
@@ -122,6 +117,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
      * @return 是否成功
      */
     @Override
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
     public boolean updateUserPassword(String password) {
         String encode = this.passwordEncoder.encode(password);
         User currentUser = this.getCurrentUser();
