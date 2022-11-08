@@ -40,7 +40,16 @@ alipay:
   publicKey: ${ALIPAY_PUBLIC_KEY}
   # 订单支付成功后的回调地址(内网映射)
   notifyUrl: ${ALIPAY_NOTIFY_URL}
-  # 跳转返回页面不可为本地页面，例如；http://127.0.0.1:8020/test/order.html 支付宝校验时会将当前订单视作有操作风险
+  # 跳转页面地址
   returnUrl: ${ALIPAY_RETURN_URL}
+  # 支付宝网关
+  GATEWAY_URL: ${GATEWAY_URL}
+  # 数据格式
+  FORMAT: "JSON"
+  # 字符集
+  CHARSET: "UTF-8"
+  # 密钥加密方式
+  SIGN_TYPE: "RSA2"
+
 
 

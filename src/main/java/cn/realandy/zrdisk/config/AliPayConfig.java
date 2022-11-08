@@ -15,5 +15,9 @@ public class AliPayConfig {
     private String publicKey;
     private String notifyUrl;
     private String returnUrl;
+    private String GATEWAY_URL;
+    private String FORMAT;
+    private String CHARSET;
+    private String SIGN_TYPE;
 
 }
