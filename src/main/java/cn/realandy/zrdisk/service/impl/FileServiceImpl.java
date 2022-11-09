@@ -19,6 +19,7 @@ import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.utils.CosUploadUtil;
 import cn.realandy.zrdisk.utils.FileTypeTransformer;
 import cn.realandy.zrdisk.utils.KsuidIdentifierGenerator;
+import cn.realandy.zrdisk.utils.VideoUtils;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -39,10 +40,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -102,8 +105,6 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             file.setParentPath(parentPath);
             file.setType(FileTypeTransformer.getFileTypeFromExt(ext));
             file.setId(fileNameUUID);
-//            HashMap<String, Object> data = upload.getData();
-//            data.put("fileId", fileNameUUID);
             file.setDownloadUrl(parentPath);
             file.setCoverUrl(file.getDownloadUrl());
             int insertResult = this.baseMapper.insert(file);
@@ -140,7 +141,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         collect.forEach(item -> {
             item.setUploader(currentUserDto);
             item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-            item.setCoverUrl(item.getDownloadUrl());
+            item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
         });
         page.setRecords(collect);
         page.setPages(resultPage.getPages());
@@ -298,10 +299,39 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         fileInfo.setType(FileTypeTransformer.getFileTypeFromExt(split[split.length - 1]));
         String fileNameUUID = this.ksuidIdentifierGenerator.nextUUID(fileInfo);
         String filePath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "." + fileInfo.getExt();
-        HashMap<String, Object> resultData = this.cosUploadUtil.upload(this.tencentCos.getBucketName(), filePath, file, fileInfo.getName()).getData();
+        this.cosUploadUtil.upload(this.tencentCos.getBucketName(), filePath, file, fileInfo.getName());
         fileInfo.setDownloadUrl(filePath);
-        if (fileInfo.getType() == FileType.IMAGE || fileInfo.getType() == FileType.VIDEO || fileInfo.getType() == FileType.AUDIO) {
+        if (fileInfo.getType() == FileType.IMAGE || fileInfo.getType() == FileType.AUDIO) {
             fileInfo.setCoverUrl(filePath);
+        }
+        if (fileInfo.getType() == FileType.VIDEO) {
+            System.out.println(file.getPath());
+
+            String projectUrl = System.getProperty("user.dir").replaceAll("\\\\", "/");
+            // 临时目录用来存放所有分片文件
+            String tempFileDir = projectUrl + "/tmpCoverImage/";
+            java.io.File parentFileDir = new java.io.File(tempFileDir);
+            if (!parentFileDir.exists()) {
+                parentFileDir.mkdirs();
+            }
+            String coverUploadPath = tempFileDir + fileNameUUID + "_cover.jpg";
+            try {
+                Objects.requireNonNull(VideoUtils.base64ToMultipart(
+                        VideoUtils.fetchFrame(file.getPath())
+                )).transferTo(new java.io.File(coverUploadPath));
+                java.io.File cover = new java.io.File(coverUploadPath);
+                String coverUlr = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "_cover.jpg";
+                //TODO 缩略图上传和持久化
+                this.cosUploadUtil.upload(
+                        this.tencentCos.getBucketName(),
+                        coverUlr,
+                        cover,
+                        coverUploadPath);
+                fileInfo.setCoverUrl(coverUlr);
+                FileUtils.delete(cover);
+            } catch (IOException e) {
+                throw new RuntimeException("缩略图生成异常");
+            }
         }
         int insertResult = this.baseMapper.insert(fileInfo);
         if (insertResult != 1) {
@@ -309,6 +339,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         }
         FileDto fileDto = this.fileMapper.entity2Dto(this.baseMapper.selectById(fileInfo.getId()));
         fileDto.setUploader(currentUserDto);
+        this.updateUserDriveUsed(file);
         return fileDto;
     }
 
@@ -334,6 +365,13 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             }
         });
         return collect;
+    }
+
+
+    private boolean updateUserDriveUsed(java.io.File file) {
+        User currentUser = this.userService.getCurrentUser();
+        currentUser.setDriveUsed(currentUser.getDriveUsed().add(BigDecimal.valueOf(file.length())));
+        return this.userService.updateById(currentUser);
     }
 
     /**
