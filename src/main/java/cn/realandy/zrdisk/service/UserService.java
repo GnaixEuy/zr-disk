@@ -42,4 +42,11 @@ public interface UserService extends IService<User>, UserDetailsService {
     boolean updateUserPassword(String password);
 
 
+    /**
+     * 获取当前登录用户dto
+     *
+     * @return 返回当前登录用户
+     */
+    UserDto getCurrentUserDto();
+
 }

@@ -14,12 +14,17 @@
         <!--        <result column="uploaderId" property="uploaderId"/>-->
         <result column="created_date_time" property="createdDateTime"/>
         <result column="updated_date_time" property="updatedDateTime"/>
-        <result column="is_delete" property="isDelete"/>
         <result column="parent_path" property="parentPath"/>
         <result column="locked" property="locked"/>
         <result column="cover_url" property="coverUrl"/>
         <result column="storage" property="storage"/>
         <result column="status" property="status"/>
     </resultMap>
+    <select id="getUserFilesTotal" resultType="java.lang.Integer">
+        SELECT COUNT(id)
+        FROM disk.file
+        WHERE uploader_id = #{userId}
+          AND is_delete = false;
+    </select>
 
 </mapper>

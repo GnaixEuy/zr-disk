@@ -20,9 +20,9 @@ spring:
     port: ${REDIS_PORT}
     password:
     dbs: ${REDIS_DBS}
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 aliyun:
   accessKeyId: ${ALIYUN_ACCESS_KEY_ID}
   secret: ${ALIYUN_SECRET}

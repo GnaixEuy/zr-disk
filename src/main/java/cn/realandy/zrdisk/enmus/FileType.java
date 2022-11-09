@@ -23,12 +23,12 @@ public enum FileType {
     /**
      * 用于分辨文件类型的枚举值
      */
-    OTHER(0, "其他"),
-    AUDIO(1, "音频"),
-    IMAGE(2, "图像"),
-    VIDEO(3, "视频"),
+    OTHER(0, "other"),
+    AUDIO(1, "audio"),
+    IMAGE(2, "image"),
+    VIDEO(3, "video"),
     ZIP(4, "压缩文件"),
-    DIR(5, "文件夹");
+    DIR(5, "folder");
 
     @EnumValue
     private Integer key;
