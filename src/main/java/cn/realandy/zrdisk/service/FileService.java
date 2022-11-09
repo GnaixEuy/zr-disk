@@ -92,4 +92,13 @@ public interface FileService extends IService<File> {
      * @return list fileDto
      */
     List<FileDto> listLikeSearchWord(String searchWord);
+
+
+    /**
+     * 获取当前用户的收藏文件信息
+     *
+     * @return list fileDto
+     */
+    List<FileDto> getCollection();
+
 }

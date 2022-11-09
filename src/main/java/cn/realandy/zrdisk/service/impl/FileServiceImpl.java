@@ -21,7 +21,6 @@ import cn.realandy.zrdisk.utils.FileTypeTransformer;
 import cn.realandy.zrdisk.utils.KsuidIdentifierGenerator;
 import cn.realandy.zrdisk.utils.VideoUtils;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
-import cn.realandy.zrdisk.vo.ResponseResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -43,7 +42,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -101,7 +99,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             java.io.File localFile = java.io.File.createTempFile(split[split.length - 2], split[split.length - 1]);
             multipartFile.transferTo(localFile);
             parentPath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUser.getId() + parentPath + "/" + fileNameUUID + "." + ext;
-            ResponseResult<HashMap<String, Object>> upload = this.cosUploadUtil.upload(this.tencentCos.getBucketName(), parentPath, localFile, originalFilename);
+            this.cosUploadUtil.upload(this.tencentCos.getBucketName(), parentPath, localFile, originalFilename);
             file.setParentPath(parentPath);
             file.setType(FileTypeTransformer.getFileTypeFromExt(ext));
             file.setId(fileNameUUID);
@@ -363,6 +361,28 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             if (item.getType() == FileType.IMAGE || item.getType() == FileType.VIDEO || item.getType() == FileType.AUDIO) {
                 item.setCoverUrl(item.getDownloadUrl());
             }
+        });
+        return collect;
+    }
+
+    /**
+     * 获取当前用户的收藏文件信息
+     *
+     * @return list fileDto
+     */
+    @Override
+    public List<FileDto> getCollection() {
+        UserDto currentUserDto = this.userService.getCurrentUserDto();
+        List<FileDto> collect = this.baseMapper.selectList(
+                Wrappers.<File>lambdaQuery()
+                        .eq(File::getUploaderId, currentUserDto.getId())
+                        .eq(File::isCollection, true)
+                        .orderByAsc(File::getCreatedDateTime)
+        ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            item.setUploader(currentUserDto);
+            item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
+            item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
         });
         return collect;
     }

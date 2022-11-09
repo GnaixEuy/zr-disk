@@ -10,6 +10,7 @@ import cn.realandy.zrdisk.service.FileService;
 import cn.realandy.zrdisk.vo.FileAttributeUpdateRequest;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
+import cn.realandy.zrdisk.vo.UpdateFileCollectionStatusRequest;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -128,10 +129,33 @@ public class FileController {
     }
 //切片上传业务
 
+    @GetMapping(value = {"/getCollection"})
+    public ResponseResult<List<FileDto>> getCollection() {
+        return ResponseResult.success(this.fileService.getCollection());
+    }
+
     @GetMapping(value = {"/search/{searchWord}"})
     public ResponseResult<List<FileDto>> search(@PathVariable String searchWord) {
         return ResponseResult.success(this.fileService.listLikeSearchWord(searchWord));
     }
+
+    @PutMapping(value = {"/setCollection"})
+    public ResponseResult<String> setCollection(@RequestBody UpdateFileCollectionStatusRequest updateFileCollectionStatusRequest) {
+        boolean updateResult = this.fileService.update(
+                Wrappers.<File>lambdaUpdate()
+                        .set(File::isCollection, updateFileCollectionStatusRequest.isCollection())
+                        .eq(File::getId, updateFileCollectionStatusRequest.getId())
+        );
+        if (!updateResult) {
+            throw new BizException(ExceptionType.FILE_UPDATE_ERROR);
+        }
+        String result = "收藏成功";
+        if (!updateFileCollectionStatusRequest.isCollection()) {
+            result = "取消收藏成功";
+        }
+        return ResponseResult.success(result);
+    }
+
 
     @Autowired
     public void setFileService(FileService fileService) {

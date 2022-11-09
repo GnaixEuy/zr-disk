@@ -28,7 +28,8 @@ public enum FileType {
     IMAGE(2, "image"),
     VIDEO(3, "video"),
     ZIP(4, "压缩文件"),
-    DIR(5, "folder");
+    DOC(5, "doc"),
+    DIR(6, "folder");
 
     @EnumValue
     private Integer key;

@@ -62,8 +62,11 @@ public class File implements Serializable {
     private boolean locked;
     @TableField
     private String coverUrl;
-    //待使用
+    @TableField
     private Storage storage;
+    @TableField
     private FileStatus status;
+    @TableField(value = "is_collection")
+    private boolean collection;
 
 }

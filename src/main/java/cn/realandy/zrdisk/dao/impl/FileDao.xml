@@ -11,7 +11,7 @@
         <result column="parent_folder" property="parentFolder"/>
         <result column="download_url" property="downloadUrl"/>
         <result column="type" property="type"/>
-        <!--        <result column="uploaderId" property="uploaderId"/>-->
+        <result column="uploaderId" property="uploaderId"/>
         <result column="created_date_time" property="createdDateTime"/>
         <result column="updated_date_time" property="updatedDateTime"/>
         <result column="parent_path" property="parentPath"/>

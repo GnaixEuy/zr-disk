@@ -40,8 +40,8 @@ public class FileDto {
     private String parentPath;
     private boolean locked;
     private String coverUrl;
-    //待使用
     private Storage storage;
     private FileStatus status;
+    private boolean collection;
 
 }
