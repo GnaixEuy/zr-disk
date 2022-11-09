@@ -27,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -75,6 +76,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         User user = this.userMapper.userCreateRequst2Entity(userCreateRequest);
         user.setCreatedDateTime(new Date());
         user.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
+        //TODO 改为配置
+        user.setDriveSize(new BigDecimal("5368709120"));
         int result = this.baseMapper.insert(user);
         if (result != 1) {
             throw new BizException(ExceptionType.USER_CREATE_EXCEPTION);

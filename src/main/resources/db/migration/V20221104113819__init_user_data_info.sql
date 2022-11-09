@@ -18,6 +18,12 @@ BEGIN;
 INSERT INTO `user` (`id`, `phone`, `email`, `password`, `nickname`, `gender`, `head_img_id`, `enabled`, `locked`,
                     `created_date_time`, `updated_date_time`, `birthday`, `drive_size`, `drive_used`, `last_login_ip`,
                     `last_login_time`, `open_id`)
+VALUES (-1769983999, '13365917711', NULL, '$2a$10$gLHrfmHlcI5ZROwJ.VmhB.95xxeU4JeBNfIwcvO5JGsbhI4f9vX7m', '小破盘test',
+        NULL, '2HFw0E94l9TJp8iqpMxtSyK8LBn', 1, 0, '2022-11-08 14:54:41', '2022-11-09 17:32:09', NULL, 10737418240,
+        7268756, NULL, NULL, NULL);
+INSERT INTO `user` (`id`, `phone`, `email`, `password`, `nickname`, `gender`, `head_img_id`, `enabled`, `locked`,
+                    `created_date_time`, `updated_date_time`, `birthday`, `drive_size`, `drive_used`, `last_login_ip`,
+                    `last_login_time`, `open_id`)
 VALUES (1, '145-0101-0039', 'houy96@gmail.com', 'rlIGMfzMKr', '侯云熙', 1, NULL, 1, 0, '2015-05-12 10:58:58',
         '2016-12-21 17:53:30', '2002-01-27 13:10:10', 10737418240, 26329.05, '232.2.63.134',
         '2022-02-28 09:58:34.000000',
@@ -91,6 +97,8 @@ COMMIT;
 -- Records of user_role_associated
 -- ----------------------------
 BEGIN;
+INSERT INTO `user_role_associated` (`user_id`, `role_id`)
+VALUES (-1769983999, 1);
 INSERT INTO `user_role_associated` (`user_id`, `role_id`)
 VALUES (1, 1);
 INSERT INTO `user_role_associated` (`user_id`, `role_id`)

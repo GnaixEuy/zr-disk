@@ -13,6 +13,7 @@ import cn.realandy.zrdisk.vo.ResponseResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,7 +73,6 @@ public class FileController {
     @PutMapping(value = {"/modify"})
     @RolesAllowed(value = {"ROLE_USER", "ROLE_ADMIN"})
     public ResponseResult<String> modify(@RequestBody FileAttributeUpdateRequest fileAttributeUpdateRequest) {
-        System.out.println(fileAttributeUpdateRequest);
         File byId = this.fileService.getById(fileAttributeUpdateRequest.getId());
         byId.setName(fileAttributeUpdateRequest.getFileName());
         byId.setType(fileAttributeUpdateRequest.getType());
@@ -119,6 +119,11 @@ public class FileController {
     public ResponseResult<String> mergeFileAndUpload(@RequestBody FileMergeRequest fileMergeRequest) {
         java.io.File file = this.fileService.mergeFile(fileMergeRequest);
         this.fileService.bigFileUpload(file, fileMergeRequest);
+        try {
+            FileUtils.delete(file);
+        } catch (IOException e) {
+            log.error("临时文件清理异常");
+        }
         return ResponseResult.success("上传成功");
     }
 //切片上传业务
