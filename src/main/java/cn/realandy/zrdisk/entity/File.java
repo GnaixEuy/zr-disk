@@ -53,7 +53,8 @@ public class File implements Serializable {
     private Date createdDateTime;
     @TableField(value = "updated_date_time", fill = FieldFill.INSERT_UPDATE)
     private Date updatedDateTime;
-    @TableField
+    @TableLogic
+    @TableField(select = false)
     private boolean isDelete;
     @TableField
     private String parentPath;

@@ -79,6 +79,11 @@ public class UserController {
         return ResponseResult.success("密码更新成功");
     }
 
+    @GetMapping(value = {"/getUsedDrive"})
+    public ResponseResult<Long> getUsedDrive() {
+        return ResponseResult.success(this.userService.getCurrentUserDto().getDriveUsed().longValue());
+    }
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;

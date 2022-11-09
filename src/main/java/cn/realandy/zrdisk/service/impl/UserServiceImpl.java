@@ -110,6 +110,17 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         return (User) this.loadUserByUsername(authentication.getName());
     }
 
+
+    /**
+     * 获取当前登录用户dto
+     *
+     * @return 返回当前登录用户
+     */
+    @Override
+    public UserDto getCurrentUserDto() {
+        return this.userMapper.entity2Dto(this.getCurrentUser());
+    }
+
     /**
      * 更新用户密码
      *

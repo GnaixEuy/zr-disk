@@ -6,8 +6,8 @@ spring:
       matching-strategy: ANT_PATH_MATCHER
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 30MB
+      max-request-size: 35MB
   datasource:
     druid:
       stat-view-servlet:
@@ -34,6 +34,10 @@ mybatis-plus:
     db-config:
       id-type: assign_uuid
       table-underline: true
+      # 删除状态
+      logic-delete-value: 1
+      # 未删除状态
+      logic-not-delete-value: 0
   #  tracker-list:
 #  aliyun:
 #    accessKeyId:
