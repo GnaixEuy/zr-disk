@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -20,16 +19,11 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileMergeRequest {
+public class UserMkdirRequest {
 
     @NotNull
-    @NotEmpty
-    private String md5;
+    private String name = "新建文件夹";
     @NotNull
-    @NotEmpty
-    private String fileName;
-    private String parentPath = "/root";
-    private String parentFileId;
-    private String parentFolder = "/root";
+    private String parentFileId = "/root";
 
 }

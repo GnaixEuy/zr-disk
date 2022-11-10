@@ -4,9 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
@@ -20,16 +17,9 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileMergeRequest {
+public class UpdateFileCollectionStatusRequest {
 
-    @NotNull
-    @NotEmpty
-    private String md5;
-    @NotNull
-    @NotEmpty
-    private String fileName;
-    private String parentPath = "/root";
-    private String parentFileId;
-    private String parentFolder = "/root";
+    private String id;
+    private boolean collection;
 
 }

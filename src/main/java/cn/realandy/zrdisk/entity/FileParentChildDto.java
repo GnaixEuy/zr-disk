@@ -1,20 +1,19 @@
-package cn.realandy.zrdisk.dto;
+package cn.realandy.zrdisk.entity;
 
-import cn.realandy.zrdisk.enmus.FileStatus;
 import cn.realandy.zrdisk.enmus.FileType;
-import cn.realandy.zrdisk.enmus.Storage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
  * <p>项目： zr-disk </p>
- * 创建日期： 2022/11/7
+ * 创建日期： 2022/11/10
  *
  * @author GnaixEuy
  * @version 1.0.0
@@ -23,26 +22,21 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileDto {
-
+public class FileParentChildDto {
     private String id;
     private String name;
+    private List<FileParentChildDto> children;
     private String hash;
     private String ext;
+    private FileType type;
     private BigDecimal size;
     private String parentFileId;
     private String parentFolder;
     private String downloadUrl;
-    private FileType type;
-    private UserDto uploader;
     private Date createdDateTime;
     private Date updatedDateTime;
-    private boolean isDelete;
     private String parentPath;
-    private boolean locked;
     private String coverUrl;
-    private Storage storage;
-    private FileStatus status;
     private boolean collection;
 
 }

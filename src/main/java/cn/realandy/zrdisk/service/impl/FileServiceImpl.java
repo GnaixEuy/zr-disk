@@ -9,6 +9,7 @@ import cn.realandy.zrdisk.enmus.FileStatus;
 import cn.realandy.zrdisk.enmus.FileType;
 import cn.realandy.zrdisk.enmus.Storage;
 import cn.realandy.zrdisk.entity.File;
+import cn.realandy.zrdisk.entity.FileParentChildDto;
 import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.exception.BizException;
@@ -21,7 +22,9 @@ import cn.realandy.zrdisk.utils.FileTypeTransformer;
 import cn.realandy.zrdisk.utils.KsuidIdentifierGenerator;
 import cn.realandy.zrdisk.utils.VideoUtils;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
-import cn.realandy.zrdisk.vo.ResponseResult;
+import cn.realandy.zrdisk.vo.FileMoveRequest;
+import cn.realandy.zrdisk.vo.UserMkdirRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -42,8 +45,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -101,8 +104,8 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             java.io.File localFile = java.io.File.createTempFile(split[split.length - 2], split[split.length - 1]);
             multipartFile.transferTo(localFile);
             parentPath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUser.getId() + parentPath + "/" + fileNameUUID + "." + ext;
-            ResponseResult<HashMap<String, Object>> upload = this.cosUploadUtil.upload(this.tencentCos.getBucketName(), parentPath, localFile, originalFilename);
-            file.setParentPath(parentPath);
+            this.cosUploadUtil.upload(this.tencentCos.getBucketName(), parentPath, localFile, originalFilename);
+            file.setParentPath("root");
             file.setType(FileTypeTransformer.getFileTypeFromExt(ext));
             file.setId(fileNameUUID);
             file.setDownloadUrl(parentPath);
@@ -131,18 +134,18 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
      * @return list <filedto></>
      */
     @Override
-    public Page<FileDto> getUserFilesPage(Page page) {
+    public Page<FileDto> getUserFilesPage(Page page, String parentFileId) {
         UserDto currentUserDto = this.userService.getCurrentUserDto();
-        Page<File> resultPage = this.baseMapper.selectPage(page, Wrappers.<File>lambdaQuery().eq(File::getUploaderId, currentUserDto.getId()));
+        QueryWrapper<File> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("uploader_id", currentUserDto.getId());
+        queryWrapper.eq("parent_file_id", parentFileId);
+
+        Page<File> resultPage = this.baseMapper.selectPage(page, queryWrapper);
         List<FileDto> collect = resultPage.getRecords()
                 .stream()
                 .map(this.fileMapper::entity2Dto)
                 .collect(Collectors.toList());
-        collect.forEach(item -> {
-            item.setUploader(currentUserDto);
-            item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-            item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
-        });
+        filterFileInfo(currentUserDto, collect);
         page.setRecords(collect);
         page.setPages(resultPage.getPages());
         page.setTotal(resultPage.getTotal());
@@ -285,6 +288,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
      */
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
     public FileDto bigFileUpload(java.io.File file, FileMergeRequest fileMergeRequest) {
         UserDto currentUserDto = this.userService.getCurrentUserDto();
         String[] split = fileMergeRequest.getFileName().split("\\.");
@@ -293,7 +297,8 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         fileInfo.setHash(fileMergeRequest.getMd5());
         fileInfo.setStorage(Storage.COS);
         fileInfo.setParentPath(fileMergeRequest.getParentPath());
-        fileInfo.setSize(file.length());
+        fileInfo.setParentFolder(fileMergeRequest.getParentFolder());
+        fileInfo.setSize(BigDecimal.valueOf(file.length()));
         fileInfo.setUploaderId(currentUserDto.getId());
         fileInfo.setExt(split[split.length - 1]);
         fileInfo.setType(FileTypeTransformer.getFileTypeFromExt(split[split.length - 1]));
@@ -301,6 +306,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         String filePath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "." + fileInfo.getExt();
         this.cosUploadUtil.upload(this.tencentCos.getBucketName(), filePath, file, fileInfo.getName());
         fileInfo.setDownloadUrl(filePath);
+        fileInfo.setParentFileId(fileMergeRequest.getParentFileId());
         if (fileInfo.getType() == FileType.IMAGE || fileInfo.getType() == FileType.AUDIO) {
             fileInfo.setCoverUrl(filePath);
         }
@@ -321,7 +327,6 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                 )).transferTo(new java.io.File(coverUploadPath));
                 java.io.File cover = new java.io.File(coverUploadPath);
                 String coverUlr = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "_cover.jpg";
-                //TODO 缩略图上传和持久化
                 this.cosUploadUtil.upload(
                         this.tencentCos.getBucketName(),
                         coverUlr,
@@ -357,14 +362,143 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                         .eq(File::getUploaderId, currentUserDto.getId())
                         .like(File::getName, searchWord)
         ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
+        filterFileInfo(currentUserDto, collect);
+        return collect;
+    }
+
+    /**
+     * 获取当前用户的收藏文件信息
+     *
+     * @return list fileDto
+     */
+    @Override
+    public List<FileDto> getCollection() {
+        UserDto currentUserDto = this.userService.getCurrentUserDto();
+        List<FileDto> collect = this.baseMapper.selectList(
+                Wrappers.<File>lambdaQuery()
+                        .eq(File::getUploaderId, currentUserDto.getId())
+                        .eq(File::isCollection, true)
+                        .orderByAsc(File::getCreatedDateTime)
+        ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
         collect.forEach(item -> {
             item.setUploader(currentUserDto);
+            item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
             item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-            if (item.getType() == FileType.IMAGE || item.getType() == FileType.VIDEO || item.getType() == FileType.AUDIO) {
-                item.setCoverUrl(item.getDownloadUrl());
-            }
         });
         return collect;
+    }
+
+    /**
+     * 用户新建文件夹记录
+     *
+     * @param userMkdirRequest 新建文件夹请求
+     * @return 是否成功
+     */
+    @Override
+    public boolean mkdir(UserMkdirRequest userMkdirRequest) {
+        User currentUser = this.userService.getCurrentUser();
+        File file = new File();
+        file.setExt("");
+        file.setSize(BigDecimal.ZERO);
+        file.setType(FileType.DIR);
+        file.setName(userMkdirRequest.getName());
+        file.setParentFileId(userMkdirRequest.getParentFileId());
+        file.setHash(String.valueOf(file.getName().hashCode()));
+        file.setUploaderId(currentUser.getId());
+        File parentFile = this.baseMapper.selectById(userMkdirRequest.getParentFileId());
+        if (parentFile != null) {
+            file.setParentPath(parentFile.getParentPath());
+        } else {
+            file.setParentPath("/root");
+        }
+        return 1 == this.baseMapper.insert(file);
+    }
+
+    /**
+     * 删除用户文件业务
+     *
+     * @param id 文件id
+     */
+    @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
+    public boolean deleteFileById(String id) {
+        BigDecimal size = this.getById(id).getSize();
+        try {
+            this.removeById(id);
+        } catch (Exception e) {
+            throw new BizException(ExceptionType.FILE_DELETE_ERROR);
+        }
+        User currentUser;
+        try {
+            currentUser = this.userService.getCurrentUser();
+            currentUser.setDriveUsed(currentUser.getDriveUsed().subtract(size));
+            this.userService.updateById(currentUser);
+        } catch (Exception e) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        return true;
+    }
+
+    @Override
+    public List<FileParentChildDto> listWithTree() {
+        User currentUser = this.userService.getCurrentUser();
+        // 1 查出所有分类
+        List<FileParentChildDto> entities = this.baseMapper.selectList(
+                Wrappers.<File>lambdaQuery()
+                        .eq(File::getType, FileType.DIR)
+                        .eq(File::getUploaderId, currentUser.getId())
+        ).stream().map(this.fileMapper::entity2FileParentChildDto).collect(Collectors.toList());
+        // 2 组装成父子的树形结构
+        return entities.stream().peek((menu) -> menu.setChildren(getChildrens(menu, entities)))
+                .sorted(Comparator.comparingLong(menu -> (menu.getCreatedDateTime() == null ? 0 : menu.getCreatedDateTime().getTime())))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 通过父文件夹id 获取子文件夹信息
+     *
+     * @param parentFileId 父文件夹id
+     * @return list fileDto
+     */
+    @Override
+    public List<FileDto> getFolderByParentFileId(String parentFileId) {
+        UserDto currentUserDto = this.userService.getCurrentUserDto();
+        List<FileDto> collect = this.baseMapper.selectList(Wrappers.<File>lambdaQuery()
+                .eq(File::getParentFileId, parentFileId)
+                .eq(File::getUploaderId, currentUserDto.getId())
+                .eq(File::getType, FileType.DIR)
+                .orderByAsc(File::getCreatedDateTime)
+        ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            item.setUploader(currentUserDto);
+        });
+        return collect;
+    }
+
+    /**
+     * 移动文件夹到新的位置
+     *
+     * @param fileMoveRequest 移动文件请求对象
+     * @return 是否成功
+     */
+    @Override
+    public boolean moveFile(FileMoveRequest fileMoveRequest) {
+        File file = this.baseMapper.selectById(fileMoveRequest.getId());
+        file.setParentFileId(fileMoveRequest.getParentFileId());
+        file.setParentFolder(file.getParentFolder());
+        file.setParentPath(file.getParentPath());
+        return 1 == this.baseMapper.updateById(file);
+    }
+
+    // 递归查找所有菜单的子菜单
+    private List<FileParentChildDto> getChildrens(FileParentChildDto root, List<FileParentChildDto> all) {
+        return all.stream().filter(categoryEntity -> {
+            return categoryEntity.getParentFileId().equals(root.getId());  // 注意此处应该用longValue()来比较，否则会出先bug，因为parentCid和catId是long类型
+        }).peek(categoryEntity -> {
+            // 1 找到子菜单
+            categoryEntity.setChildren(getChildrens(categoryEntity, all));
+        }).sorted(Comparator.comparingLong(menu -> (menu.getCreatedDateTime() == null ? 0 : menu.getCreatedDateTime().getTime()))).collect(Collectors.toList());
     }
 
 
@@ -384,6 +518,23 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         return (User) this.userService.loadUserByUsername(authentication.getName());
     }
 
+    private void filterFileInfo(UserDto currentUserDto, List<FileDto> collect) {
+        collect.forEach(item -> {
+            item.setUploader(currentUserDto);
+            if (item.isLocked()) {
+                item.setDownloadUrl("违规锁定图片地址");
+                item.setCoverUrl("违规锁定图片地址");
+            } else {
+                item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
+                if (item.getType() == FileType.IMAGE) {
+                    item.setCoverUrl(item.getDownloadUrl());
+                }
+                if (item.getType() == FileType.VIDEO || item.getType() == FileType.AUDIO) {
+                    item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
+                }
+            }
+        });
+    }
 
     @Autowired
     public void setUserService(UserService userService) {

@@ -7,9 +7,8 @@ import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.service.FileService;
-import cn.realandy.zrdisk.vo.FileAttributeUpdateRequest;
-import cn.realandy.zrdisk.vo.FileMergeRequest;
-import cn.realandy.zrdisk.vo.ResponseResult;
+import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.*;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +21,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -40,12 +40,13 @@ import java.util.List;
 public class FileController {
 
     private FileService fileService;
+    private UserService userService;
 
     private TencentCos tencentCos;
 
     @GetMapping(value = {"/getFile"})
-    public ResponseResult<Page<FileDto>> getFileTotalsByUser(Page<FileDto> page) {
-        return ResponseResult.success(this.fileService.getUserFilesPage(page));
+    public ResponseResult<Page<FileDto>> getFileTotalsByUser(Page<FileDto> page, String parentFileId) {
+        return ResponseResult.success(this.fileService.getUserFilesPage(page, parentFileId));
     }
 
     @GetMapping(value = {"/getFileTotal"})
@@ -59,16 +60,13 @@ public class FileController {
         return ResponseResult.success(userFilesByType);
     }
 
+
     @DeleteMapping(value = {"/delFile"})
     public ResponseResult<String> deleteFileById(String id) {
-        try {
-            this.fileService.removeById(id);
-        } catch (Exception e) {
-            throw new BizException(ExceptionType.FILE_DELETE_ERROR);
-        }
-        //TODO 修改用户使用size空间
+        this.fileService.deleteFileById(id);
         return ResponseResult.success("删除成功");
     }
+
 
     @PutMapping(value = {"/modify"})
     @RolesAllowed(value = {"ROLE_USER", "ROLE_ADMIN"})
@@ -87,7 +85,7 @@ public class FileController {
     public ResponseResult<FileDto> userUploadHeadImage(MultipartFile multipartFile, String fileName, long size) throws IOException {
         File file = new File();
         file.setName(fileName);
-        file.setSize(size);
+        file.setSize(BigDecimal.valueOf(size));
         FileDto fileDto = this.fileService.saveUserHeadImage(file, multipartFile);
         fileDto.setDownloadUrl(this.tencentCos.getBaseUrl() + fileDto.getDownloadUrl());
         return ResponseResult.success(fileDto);
@@ -128,10 +126,58 @@ public class FileController {
     }
 //切片上传业务
 
+    @GetMapping(value = {"/getCollection"})
+    public ResponseResult<List<FileDto>> getCollection() {
+        return ResponseResult.success(this.fileService.getCollection());
+    }
+
     @GetMapping(value = {"/search/{searchWord}"})
     public ResponseResult<List<FileDto>> search(@PathVariable String searchWord) {
         return ResponseResult.success(this.fileService.listLikeSearchWord(searchWord));
     }
+
+    @PutMapping(value = {"/setCollection"})
+    public ResponseResult<String> setCollection(@RequestBody UpdateFileCollectionStatusRequest updateFileCollectionStatusRequest) {
+        boolean updateResult = this.fileService.update(
+                Wrappers.<File>lambdaUpdate()
+                        .set(File::isCollection, updateFileCollectionStatusRequest.isCollection())
+                        .eq(File::getId, updateFileCollectionStatusRequest.getId())
+        );
+        if (!updateResult) {
+            throw new BizException(ExceptionType.FILE_UPDATE_ERROR);
+        }
+        String result = "收藏成功";
+        if (!updateFileCollectionStatusRequest.isCollection()) {
+            result = "取消收藏成功";
+        }
+        return ResponseResult.success(result);
+    }
+
+    @PostMapping(value = {"/mkdir"})
+    public ResponseResult<String> userMkdir(@RequestBody UserMkdirRequest userMkdirRequest) {
+        if (this.fileService.mkdir(userMkdirRequest)) {
+            return ResponseResult.success("新增文件夹成功");
+        }
+        return ResponseResult.error("新增文件夹失败");
+    }
+
+    @GetMapping(value = {"/getFolder/{parentFileId}"})
+    public ResponseResult<List<FileDto>> getFolder(@PathVariable String parentFileId) {
+        //算法全部封装版
+        //        return ResponseResult.success(this.fileService.listWithTree());
+        return ResponseResult.success(this.fileService.getFolderByParentFileId(parentFileId));
+    }
+
+    @PutMapping(value = {"/move"})
+    public ResponseResult<String> fileMove(@RequestBody FileMoveRequest fileMoveRequest) {
+        System.out.println(fileMoveRequest);
+        if (!this.fileService.moveFile(fileMoveRequest)) {
+            throw new BizException(ExceptionType.FILE_UPDATE_ERROR);
+        }
+        return ResponseResult.success("移动成功");
+
+    }
+
 
     @Autowired
     public void setFileService(FileService fileService) {
@@ -142,4 +188,10 @@ public class FileController {
     public void setTencentCos(TencentCos tencentCos) {
         this.tencentCos = tencentCos;
     }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
 }
