@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -38,7 +39,7 @@ public class File implements Serializable {
     @TableField
     private String ext;
     @TableField
-    private long size;
+    private BigDecimal size;
     @TableField
     private String parentFileId;
     @TableField

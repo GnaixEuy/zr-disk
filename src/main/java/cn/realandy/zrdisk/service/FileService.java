@@ -109,4 +109,12 @@ public interface FileService extends IService<File> {
      * @return 是否成功
      */
     boolean mkdir(UserMkdirRequest userMkdirRequest);
+
+    /**
+     * 删除用户文件业务
+     *
+     * @param id 文件id
+     */
+    boolean deleteFileById(String id);
+
 }

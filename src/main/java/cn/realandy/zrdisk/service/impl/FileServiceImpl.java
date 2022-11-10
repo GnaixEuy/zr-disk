@@ -135,7 +135,6 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         UserDto currentUserDto = this.userService.getCurrentUserDto();
         QueryWrapper<File> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("uploader_id", currentUserDto.getId());
-
         queryWrapper.eq("parent_file_id", parentFileId);
 
         Page<File> resultPage = this.baseMapper.selectPage(page, queryWrapper);
@@ -145,8 +144,16 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                 .collect(Collectors.toList());
         collect.forEach(item -> {
             item.setUploader(currentUserDto);
-            item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-            item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
+            if (item.getUploader().isLocked()) {
+                item.setDownloadUrl("违规锁定图片地址");
+                item.setCoverUrl("违规锁定图片地址");
+            } else if (item.getUploader().isEnabled()) {
+                item.setDownloadUrl("私密图片地址");
+                item.setCoverUrl("私密图片地址");
+            } else {
+                item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
+                item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
+            }
         });
         page.setRecords(collect);
         page.setPages(resultPage.getPages());
@@ -290,6 +297,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
      */
     @Override
     @Transactional
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
     public FileDto bigFileUpload(java.io.File file, FileMergeRequest fileMergeRequest) {
         UserDto currentUserDto = this.userService.getCurrentUserDto();
         String[] split = fileMergeRequest.getFileName().split("\\.");
@@ -299,7 +307,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         fileInfo.setStorage(Storage.COS);
         fileInfo.setParentPath(fileMergeRequest.getParentPath());
         fileInfo.setParentFolder(fileMergeRequest.getParentFolder());
-        fileInfo.setSize(file.length());
+        fileInfo.setSize(BigDecimal.valueOf(file.length()));
         fileInfo.setUploaderId(currentUserDto.getId());
         fileInfo.setExt(split[split.length - 1]);
         fileInfo.setType(FileTypeTransformer.getFileTypeFromExt(split[split.length - 1]));
@@ -328,7 +336,6 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                 )).transferTo(new java.io.File(coverUploadPath));
                 java.io.File cover = new java.io.File(coverUploadPath);
                 String coverUlr = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "_cover.jpg";
-                //TODO 缩略图上传和持久化
                 this.cosUploadUtil.upload(
                         this.tencentCos.getBucketName(),
                         coverUlr,
@@ -407,7 +414,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         User currentUser = this.userService.getCurrentUser();
         File file = new File();
         file.setExt("");
-        file.setSize(0);
+        file.setSize(BigDecimal.ZERO);
         file.setType(FileType.DIR);
         file.setName(userMkdirRequest.getName());
         file.setParentFileId(userMkdirRequest.getParentFileId());
@@ -420,6 +427,32 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             file.setParentPath("/root");
         }
         return 1 == this.baseMapper.insert(file);
+    }
+
+    /**
+     * 删除用户文件业务
+     *
+     * @param id 文件id
+     */
+    @Override
+    @Transactional
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
+    public boolean deleteFileById(String id) {
+        BigDecimal size = this.getById(id).getSize();
+        try {
+            this.removeById(id);
+        } catch (Exception e) {
+            throw new BizException(ExceptionType.FILE_DELETE_ERROR);
+        }
+        User currentUser;
+        try {
+            currentUser = this.userService.getCurrentUser();
+            currentUser.setDriveUsed(currentUser.getDriveUsed().subtract(size));
+            this.userService.updateById(currentUser);
+        } catch (Exception e) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        return true;
     }
 
 

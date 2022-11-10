@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -28,7 +29,7 @@ public class FileDto {
     private String name;
     private String hash;
     private String ext;
-    private long size;
+    private BigDecimal size;
     private String parentFileId;
     private String parentFolder;
     private String downloadUrl;

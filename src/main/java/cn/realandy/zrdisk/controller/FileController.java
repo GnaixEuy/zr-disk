@@ -7,6 +7,7 @@ import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.service.FileService;
+import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.*;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,6 +21,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -38,6 +40,7 @@ import java.util.List;
 public class FileController {
 
     private FileService fileService;
+    private UserService userService;
 
     private TencentCos tencentCos;
 
@@ -57,16 +60,13 @@ public class FileController {
         return ResponseResult.success(userFilesByType);
     }
 
+
     @DeleteMapping(value = {"/delFile"})
     public ResponseResult<String> deleteFileById(String id) {
-        try {
-            this.fileService.removeById(id);
-        } catch (Exception e) {
-            throw new BizException(ExceptionType.FILE_DELETE_ERROR);
-        }
-        //TODO 修改用户使用size空间
+        this.fileService.deleteFileById(id);
         return ResponseResult.success("删除成功");
     }
+
 
     @PutMapping(value = {"/modify"})
     @RolesAllowed(value = {"ROLE_USER", "ROLE_ADMIN"})
@@ -85,7 +85,7 @@ public class FileController {
     public ResponseResult<FileDto> userUploadHeadImage(MultipartFile multipartFile, String fileName, long size) throws IOException {
         File file = new File();
         file.setName(fileName);
-        file.setSize(size);
+        file.setSize(BigDecimal.valueOf(size));
         FileDto fileDto = this.fileService.saveUserHeadImage(file, multipartFile);
         fileDto.setDownloadUrl(this.tencentCos.getBaseUrl() + fileDto.getDownloadUrl());
         return ResponseResult.success(fileDto);
@@ -171,4 +171,10 @@ public class FileController {
     public void setTencentCos(TencentCos tencentCos) {
         this.tencentCos = tencentCos;
     }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
 }
