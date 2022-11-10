@@ -20,6 +20,7 @@
         <result column="storage" property="storage"/>
         <result column="status" property="status"/>
     </resultMap>
+
     <select id="getUserFilesTotal" resultType="java.lang.Integer">
         SELECT COUNT(id)
         FROM disk.file

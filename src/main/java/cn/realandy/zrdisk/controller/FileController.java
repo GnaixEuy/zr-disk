@@ -161,6 +161,23 @@ public class FileController {
         return ResponseResult.error("新增文件夹失败");
     }
 
+    @GetMapping(value = {"/getFolder/{parentFileId}"})
+    public ResponseResult<List<FileDto>> getFolder(@PathVariable String parentFileId) {
+        //算法全部封装版
+        //        return ResponseResult.success(this.fileService.listWithTree());
+        return ResponseResult.success(this.fileService.getFolderByParentFileId(parentFileId));
+    }
+
+    @PutMapping(value = {"/move"})
+    public ResponseResult<String> fileMove(@RequestBody FileMoveRequest fileMoveRequest) {
+        System.out.println(fileMoveRequest);
+        if (!this.fileService.moveFile(fileMoveRequest)) {
+            throw new BizException(ExceptionType.FILE_UPDATE_ERROR);
+        }
+        return ResponseResult.success("移动成功");
+
+    }
+
 
     @Autowired
     public void setFileService(FileService fileService) {

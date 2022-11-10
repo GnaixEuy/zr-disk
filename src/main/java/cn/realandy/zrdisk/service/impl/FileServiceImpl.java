@@ -9,6 +9,7 @@ import cn.realandy.zrdisk.enmus.FileStatus;
 import cn.realandy.zrdisk.enmus.FileType;
 import cn.realandy.zrdisk.enmus.Storage;
 import cn.realandy.zrdisk.entity.File;
+import cn.realandy.zrdisk.entity.FileParentChildDto;
 import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.exception.BizException;
@@ -21,6 +22,7 @@ import cn.realandy.zrdisk.utils.FileTypeTransformer;
 import cn.realandy.zrdisk.utils.KsuidIdentifierGenerator;
 import cn.realandy.zrdisk.utils.VideoUtils;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
+import cn.realandy.zrdisk.vo.FileMoveRequest;
 import cn.realandy.zrdisk.vo.UserMkdirRequest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -43,6 +45,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -142,19 +145,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                 .stream()
                 .map(this.fileMapper::entity2Dto)
                 .collect(Collectors.toList());
-        collect.forEach(item -> {
-            item.setUploader(currentUserDto);
-            if (item.getUploader().isLocked()) {
-                item.setDownloadUrl("违规锁定图片地址");
-                item.setCoverUrl("违规锁定图片地址");
-            } else if (item.getUploader().isEnabled()) {
-                item.setDownloadUrl("私密图片地址");
-                item.setCoverUrl("私密图片地址");
-            } else {
-                item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-                item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
-            }
-        });
+        filterFileInfo(currentUserDto, collect);
         page.setRecords(collect);
         page.setPages(resultPage.getPages());
         page.setTotal(resultPage.getTotal());
@@ -371,13 +362,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
                         .eq(File::getUploaderId, currentUserDto.getId())
                         .like(File::getName, searchWord)
         ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
-        collect.forEach(item -> {
-            item.setUploader(currentUserDto);
-            item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
-            if (item.getType() == FileType.IMAGE || item.getType() == FileType.VIDEO || item.getType() == FileType.AUDIO) {
-                item.setCoverUrl(item.getDownloadUrl());
-            }
-        });
+        filterFileInfo(currentUserDto, collect);
         return collect;
     }
 
@@ -455,6 +440,67 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         return true;
     }
 
+    @Override
+    public List<FileParentChildDto> listWithTree() {
+        User currentUser = this.userService.getCurrentUser();
+        // 1 查出所有分类
+        List<FileParentChildDto> entities = this.baseMapper.selectList(
+                Wrappers.<File>lambdaQuery()
+                        .eq(File::getType, FileType.DIR)
+                        .eq(File::getUploaderId, currentUser.getId())
+        ).stream().map(this.fileMapper::entity2FileParentChildDto).collect(Collectors.toList());
+        // 2 组装成父子的树形结构
+        return entities.stream().peek((menu) -> menu.setChildren(getChildrens(menu, entities)))
+                .sorted(Comparator.comparingLong(menu -> (menu.getCreatedDateTime() == null ? 0 : menu.getCreatedDateTime().getTime())))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 通过父文件夹id 获取子文件夹信息
+     *
+     * @param parentFileId 父文件夹id
+     * @return list fileDto
+     */
+    @Override
+    public List<FileDto> getFolderByParentFileId(String parentFileId) {
+        UserDto currentUserDto = this.userService.getCurrentUserDto();
+        List<FileDto> collect = this.baseMapper.selectList(Wrappers.<File>lambdaQuery()
+                .eq(File::getParentFileId, parentFileId)
+                .eq(File::getUploaderId, currentUserDto.getId())
+                .eq(File::getType, FileType.DIR)
+                .orderByAsc(File::getCreatedDateTime)
+        ).stream().map(this.fileMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            item.setUploader(currentUserDto);
+        });
+        return collect;
+    }
+
+    /**
+     * 移动文件夹到新的位置
+     *
+     * @param fileMoveRequest 移动文件请求对象
+     * @return 是否成功
+     */
+    @Override
+    public boolean moveFile(FileMoveRequest fileMoveRequest) {
+        File file = this.baseMapper.selectById(fileMoveRequest.getId());
+        file.setParentFileId(fileMoveRequest.getParentFileId());
+        file.setParentFolder(file.getParentFolder());
+        file.setParentPath(file.getParentPath());
+        return 1 == this.baseMapper.updateById(file);
+    }
+
+    // 递归查找所有菜单的子菜单
+    private List<FileParentChildDto> getChildrens(FileParentChildDto root, List<FileParentChildDto> all) {
+        return all.stream().filter(categoryEntity -> {
+            return categoryEntity.getParentFileId().equals(root.getId());  // 注意此处应该用longValue()来比较，否则会出先bug，因为parentCid和catId是long类型
+        }).peek(categoryEntity -> {
+            // 1 找到子菜单
+            categoryEntity.setChildren(getChildrens(categoryEntity, all));
+        }).sorted(Comparator.comparingLong(menu -> (menu.getCreatedDateTime() == null ? 0 : menu.getCreatedDateTime().getTime()))).collect(Collectors.toList());
+    }
+
 
     private boolean updateUserDriveUsed(java.io.File file) {
         User currentUser = this.userService.getCurrentUser();
@@ -472,6 +518,23 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         return (User) this.userService.loadUserByUsername(authentication.getName());
     }
 
+    private void filterFileInfo(UserDto currentUserDto, List<FileDto> collect) {
+        collect.forEach(item -> {
+            item.setUploader(currentUserDto);
+            if (item.isLocked()) {
+                item.setDownloadUrl("违规锁定图片地址");
+                item.setCoverUrl("违规锁定图片地址");
+            } else {
+                item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
+                if (item.getType() == FileType.IMAGE) {
+                    item.setCoverUrl(item.getDownloadUrl());
+                }
+                if (item.getType() == FileType.VIDEO || item.getType() == FileType.AUDIO) {
+                    item.setCoverUrl(this.tencentCos.getBaseUrl() + item.getCoverUrl());
+                }
+            }
+        });
+    }
 
     @Autowired
     public void setUserService(UserService userService) {

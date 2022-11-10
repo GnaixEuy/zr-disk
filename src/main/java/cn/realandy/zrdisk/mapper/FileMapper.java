@@ -2,6 +2,7 @@ package cn.realandy.zrdisk.mapper;
 
 import cn.realandy.zrdisk.dto.FileDto;
 import cn.realandy.zrdisk.entity.File;
+import cn.realandy.zrdisk.entity.FileParentChildDto;
 import org.mapstruct.Mapper;
 
 /**
@@ -18,5 +19,7 @@ import org.mapstruct.Mapper;
 public interface FileMapper {
 
     FileDto entity2Dto(File file);
+
+    FileParentChildDto entity2FileParentChildDto(File file);
 
 }

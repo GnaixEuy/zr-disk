@@ -3,7 +3,9 @@ package cn.realandy.zrdisk.service;
 import cn.realandy.zrdisk.dto.FileDto;
 import cn.realandy.zrdisk.enmus.FileType;
 import cn.realandy.zrdisk.entity.File;
+import cn.realandy.zrdisk.entity.FileParentChildDto;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
+import cn.realandy.zrdisk.vo.FileMoveRequest;
 import cn.realandy.zrdisk.vo.UserMkdirRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -116,5 +118,28 @@ public interface FileService extends IService<File> {
      * @param id 文件id
      */
     boolean deleteFileById(String id);
+
+    /**
+     * 获取当前用户文件目录树结构
+     *
+     * @return
+     */
+    List<FileParentChildDto> listWithTree();
+
+    /**
+     * 通过父文件夹id 获取子文件夹信息
+     *
+     * @param parentFileId 父文件夹id
+     * @return list fileDto
+     */
+    List<FileDto> getFolderByParentFileId(String parentFileId);
+
+    /**
+     * 移动文件夹到新的位置
+     *
+     * @param fileMoveRequest 移动文件请求对象
+     * @return 是否成功
+     */
+    boolean moveFile(FileMoveRequest fileMoveRequest);
 
 }
