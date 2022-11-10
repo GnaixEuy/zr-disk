@@ -7,10 +7,7 @@ import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.service.FileService;
-import cn.realandy.zrdisk.vo.FileAttributeUpdateRequest;
-import cn.realandy.zrdisk.vo.FileMergeRequest;
-import cn.realandy.zrdisk.vo.ResponseResult;
-import cn.realandy.zrdisk.vo.UpdateFileCollectionStatusRequest;
+import cn.realandy.zrdisk.vo.*;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +42,8 @@ public class FileController {
     private TencentCos tencentCos;
 
     @GetMapping(value = {"/getFile"})
-    public ResponseResult<Page<FileDto>> getFileTotalsByUser(Page<FileDto> page) {
-        return ResponseResult.success(this.fileService.getUserFilesPage(page));
+    public ResponseResult<Page<FileDto>> getFileTotalsByUser(Page<FileDto> page, String parentFileId) {
+        return ResponseResult.success(this.fileService.getUserFilesPage(page, parentFileId));
     }
 
     @GetMapping(value = {"/getFileTotal"})
@@ -154,6 +151,14 @@ public class FileController {
             result = "取消收藏成功";
         }
         return ResponseResult.success(result);
+    }
+
+    @PostMapping(value = {"/mkdir"})
+    public ResponseResult<String> userMkdir(@RequestBody UserMkdirRequest userMkdirRequest) {
+        if (this.fileService.mkdir(userMkdirRequest)) {
+            return ResponseResult.success("新增文件夹成功");
+        }
+        return ResponseResult.error("新增文件夹失败");
     }
 
 

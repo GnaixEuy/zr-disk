@@ -71,7 +71,6 @@ public class UserController {
 
     @PutMapping(value = {"/modifyCipher"})
     public ResponseResult<String> modifyCipher(@RequestBody String password) {
-        System.out.println(password);
         if (password == null || "".equals(password)) {
             return ResponseResult.error("密码不能为空");
         }

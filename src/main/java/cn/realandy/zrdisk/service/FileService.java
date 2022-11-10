@@ -4,6 +4,7 @@ import cn.realandy.zrdisk.dto.FileDto;
 import cn.realandy.zrdisk.enmus.FileType;
 import cn.realandy.zrdisk.entity.File;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
+import cn.realandy.zrdisk.vo.UserMkdirRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,7 +39,7 @@ public interface FileService extends IService<File> {
      *
      * @return list <filedto></>
      */
-    Page<FileDto> getUserFilesPage(Page page);
+    Page<FileDto> getUserFilesPage(Page page, String parentFileId);
 
 
     /**
@@ -101,4 +102,11 @@ public interface FileService extends IService<File> {
      */
     List<FileDto> getCollection();
 
+    /**
+     * 用户新建文件夹记录
+     *
+     * @param userMkdirRequest 新建文件夹请求
+     * @return 是否成功
+     */
+    boolean mkdir(UserMkdirRequest userMkdirRequest);
 }

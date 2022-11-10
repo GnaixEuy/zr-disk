@@ -21,6 +21,8 @@ import cn.realandy.zrdisk.utils.FileTypeTransformer;
 import cn.realandy.zrdisk.utils.KsuidIdentifierGenerator;
 import cn.realandy.zrdisk.utils.VideoUtils;
 import cn.realandy.zrdisk.vo.FileMergeRequest;
+import cn.realandy.zrdisk.vo.UserMkdirRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -100,7 +102,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             multipartFile.transferTo(localFile);
             parentPath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUser.getId() + parentPath + "/" + fileNameUUID + "." + ext;
             this.cosUploadUtil.upload(this.tencentCos.getBucketName(), parentPath, localFile, originalFilename);
-            file.setParentPath(parentPath);
+            file.setParentPath("root");
             file.setType(FileTypeTransformer.getFileTypeFromExt(ext));
             file.setId(fileNameUUID);
             file.setDownloadUrl(parentPath);
@@ -129,9 +131,14 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
      * @return list <filedto></>
      */
     @Override
-    public Page<FileDto> getUserFilesPage(Page page) {
+    public Page<FileDto> getUserFilesPage(Page page, String parentFileId) {
         UserDto currentUserDto = this.userService.getCurrentUserDto();
-        Page<File> resultPage = this.baseMapper.selectPage(page, Wrappers.<File>lambdaQuery().eq(File::getUploaderId, currentUserDto.getId()));
+        QueryWrapper<File> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("uploader_id", currentUserDto.getId());
+
+        queryWrapper.eq("parent_file_id", parentFileId);
+
+        Page<File> resultPage = this.baseMapper.selectPage(page, queryWrapper);
         List<FileDto> collect = resultPage.getRecords()
                 .stream()
                 .map(this.fileMapper::entity2Dto)
@@ -291,6 +298,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         fileInfo.setHash(fileMergeRequest.getMd5());
         fileInfo.setStorage(Storage.COS);
         fileInfo.setParentPath(fileMergeRequest.getParentPath());
+        fileInfo.setParentFolder(fileMergeRequest.getParentFolder());
         fileInfo.setSize(file.length());
         fileInfo.setUploaderId(currentUserDto.getId());
         fileInfo.setExt(split[split.length - 1]);
@@ -299,6 +307,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         String filePath = "/" + TencentCosConfig.COS_ATTACHMENT + "/" + currentUserDto.getId() + "/" + fileInfo.getParentPath() + "/" + fileNameUUID + "." + fileInfo.getExt();
         this.cosUploadUtil.upload(this.tencentCos.getBucketName(), filePath, file, fileInfo.getName());
         fileInfo.setDownloadUrl(filePath);
+        fileInfo.setParentFileId(fileMergeRequest.getParentFileId());
         if (fileInfo.getType() == FileType.IMAGE || fileInfo.getType() == FileType.AUDIO) {
             fileInfo.setCoverUrl(filePath);
         }
@@ -385,6 +394,32 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
             item.setDownloadUrl(this.tencentCos.getBaseUrl() + item.getDownloadUrl());
         });
         return collect;
+    }
+
+    /**
+     * 用户新建文件夹记录
+     *
+     * @param userMkdirRequest 新建文件夹请求
+     * @return 是否成功
+     */
+    @Override
+    public boolean mkdir(UserMkdirRequest userMkdirRequest) {
+        User currentUser = this.userService.getCurrentUser();
+        File file = new File();
+        file.setExt("");
+        file.setSize(0);
+        file.setType(FileType.DIR);
+        file.setName(userMkdirRequest.getName());
+        file.setParentFileId(userMkdirRequest.getParentFileId());
+        file.setHash(String.valueOf(file.getName().hashCode()));
+        file.setUploaderId(currentUser.getId());
+        File parentFile = this.baseMapper.selectById(userMkdirRequest.getParentFileId());
+        if (parentFile != null) {
+            file.setParentPath(parentFile.getParentPath());
+        } else {
+            file.setParentPath("/root");
+        }
+        return 1 == this.baseMapper.insert(file);
     }
 
 
