@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -100,7 +99,9 @@ public class LoginServiceImpl implements LoginService {
         if (!registeredUserByPhoneRequest.getRealVerificationCode().equals(realVerificationCode)) {
             throw new BizException(ExceptionType.PHONE_VERIFICATION_CODE_ERROR);
         }
-        UserDetails user = this.userService.loadUserByUsername(registeredUserByPhoneRequest.getPhone());
+        User user = this.userService.getOne(
+                Wrappers.<User>lambdaQuery().eq(User::getPhone, registeredUserByPhoneRequest.getPhone())
+        );
         if (ObjectUtil.isNull(user)) {
             String encodePassword = this.passwordEncoder.encode(registeredUserByPhoneRequest.getPassword());
             UserDto userDto = this.userService.addUser(new UserCreateRequest() {{
@@ -111,8 +112,10 @@ public class LoginServiceImpl implements LoginService {
                 this.setLocked(false);
             }});
             user = this.userMapper.dto2Entity(userDto);
+        } else {
+            throw new BizException(ExceptionType.USER_NAME_DUPLICATE);
         }
-        return tokenVerifyAndGenerated((User) user);
+        return tokenVerifyAndGenerated(user);
     }
 
     /**

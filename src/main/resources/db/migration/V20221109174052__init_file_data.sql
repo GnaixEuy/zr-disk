@@ -50,4 +50,11 @@ VALUES ('2HIwdJNnvnYbmcxVFrhsQ2fDBpY', '垃圾鸡汤短视频.mp4', '21822aa8fb4
         'root', NULL, '/attachment/-1769983999/root/2HIwckiONios8Lba8Aj9MuikCTW.mp4', -1769983999,
         '2022-11-09 17:26:31.065000', '2022-11-09 17:26:31.067000', 0, 'root', 0,
         '/attachment/-1769983999/root/2HIwckiONios8Lba8Aj9MuikCTW_cover.jpg', 1, 1);
+INSERT INTO `file` (`id`, `name`, `hash`, `ext`, `size`, `type`, `parent_file_id`, `parent_folder`, `download_url`,
+                    `uploader_id`, `created_date_time`, `updated_date_time`, `is_delete`, `parent_path`, `locked`,
+                    `cover_url`, `storage`, `status`)
+VALUES ('1', '默认头像.jpg', '21822aa8fb4047532e1f5709c47e0296', 'jpg', 29.48242188, 3,
+        'root', NULL, '/defaultHeadImg.jpeg', -1769983999,
+        '2022-11-09 17:26:31.065000', '2022-11-09 17:26:31.067000', 0, 'root', 0,
+        '默认头像.jpg', 1, 1);
 COMMIT;

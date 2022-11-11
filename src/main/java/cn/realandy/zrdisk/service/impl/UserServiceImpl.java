@@ -89,6 +89,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         if (user == null) {
             throw new BizException(ExceptionType.USER_NOT_FOUND);
         }
+        this.baseMapper.updateHeadImgId(user, "1");
         //默认新用户赋予用户权限
         int authorizeResult = this.userRoleAssociateDao.insert(new UserRoleAssociated(1, user.getId()));
         if (authorizeResult != 1) {
