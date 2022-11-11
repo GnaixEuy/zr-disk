@@ -128,7 +128,11 @@ public class LoginServiceImpl implements LoginService {
     public String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
         User user = this.userService.getOne(Wrappers
                 .<User>lambdaQuery()
-                .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone()));
+                .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone())
+        );
+        if (user == null) {
+            throw new BizException(ExceptionType.USER_NOT_FOUND);
+        }
         if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), user.getPassword())) {
             throw new BizException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }

@@ -47,7 +47,6 @@ public class AuthorController {
 
     @PutMapping(value = {"/findPass"})
     public ResponseResult<String> findPass(@RequestBody FindPassRequest findPassRequest) {
-        System.out.println(findPassRequest);
         try {
             this.userService.findPass(findPassRequest);
         } catch (Exception e) {
