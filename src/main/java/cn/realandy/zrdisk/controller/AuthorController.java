@@ -2,9 +2,11 @@ package cn.realandy.zrdisk.controller;
 
 import cn.realandy.zrdisk.service.LoginService;
 import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.FindPassRequest;
 import cn.realandy.zrdisk.vo.LoginByPhoneAndPasswordRequest;
 import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
  * @version 1.0.0
  * @see <a href="https://github.com/GnaixEuy"> GnaixEuy的GitHub </a>
  */
+@Slf4j
 @RestController
 @RequestMapping(value = {"/author"})
 public class AuthorController {
@@ -40,6 +43,18 @@ public class AuthorController {
     @PostMapping(value = {"/login"})
     public ResponseResult<String> loginByPhone(@RequestBody LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
         return ResponseResult.success(this.loginService.getTokenByPhoneAndPassword(loginByPhoneAndPasswordRequest));
+    }
+
+    @PutMapping(value = {"/findPass"})
+    public ResponseResult<String> findPass(@RequestBody FindPassRequest findPassRequest) {
+        System.out.println(findPassRequest);
+        try {
+            this.userService.findPass(findPassRequest);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseResult.error("密码重制失败");
+        }
+        return ResponseResult.success("密码重制成功");
     }
 
     @Autowired

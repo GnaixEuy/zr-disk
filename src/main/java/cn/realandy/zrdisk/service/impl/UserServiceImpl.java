@@ -5,6 +5,7 @@ import cn.realandy.zrdisk.dao.RoleDao;
 import cn.realandy.zrdisk.dao.UserDao;
 import cn.realandy.zrdisk.dao.relation.UserRoleAssociatedDao;
 import cn.realandy.zrdisk.dto.UserDto;
+import cn.realandy.zrdisk.enmus.RedisDbType;
 import cn.realandy.zrdisk.entity.Role;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.entity.relation.UserRoleAssociated;
@@ -12,6 +13,7 @@ import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.FindPassRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -123,6 +126,34 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     @Override
     public UserDto getCurrentUserDto() {
         return this.userMapper.entity2Dto(this.getCurrentUser());
+    }
+
+    /**
+     * 用户重制密码业务
+     *
+     * @param findPassRequest
+     */
+    @Override
+    @CacheEvict(cacheNames = {"userInfo"}, key = "#findPassRequest.username")
+    public boolean findPass(FindPassRequest findPassRequest) {
+        RedisTemplate<String, Object> redisTemplateByDb = this.redisConfig.getRedisTemplateByDb(RedisDbType.PHONE_VERIFICATION_CODE.getCode());
+        Integer code = (Integer) redisTemplateByDb
+                .opsForValue()
+                .get(findPassRequest.getUsername());
+        if (code == null || !code.equals(findPassRequest.getVerificationCode())) {
+            throw new BizException(ExceptionType.PHONE_VERIFICATION_CODE_ERROR);
+        }
+        redisTemplateByDb.delete(findPassRequest.getUsername());
+        User user = this.baseMapper.selectOne(
+                Wrappers
+                        .<User>lambdaQuery()
+                        .eq(User::getPhone, findPassRequest.getUsername())
+        );
+        if (user == null) {
+            throw new BizException(ExceptionType.USER_NOT_FOUND);
+        }
+        user.setPassword(this.passwordEncoder.encode(findPassRequest.getPassword()));
+        return 1 == this.baseMapper.updateById(user);
     }
 
     /**

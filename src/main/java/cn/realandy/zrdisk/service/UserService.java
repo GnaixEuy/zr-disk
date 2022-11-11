@@ -2,6 +2,7 @@ package cn.realandy.zrdisk.service;
 
 import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.entity.User;
+import cn.realandy.zrdisk.vo.FindPassRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -48,5 +49,12 @@ public interface UserService extends IService<User>, UserDetailsService {
      * @return 返回当前登录用户
      */
     UserDto getCurrentUserDto();
+
+    /**
+     * 用户重制密码业务
+     *
+     * @param findPassRequest
+     */
+    boolean findPass(FindPassRequest findPassRequest);
 
 }

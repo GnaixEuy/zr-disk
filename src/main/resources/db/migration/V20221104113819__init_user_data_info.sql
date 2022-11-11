@@ -18,7 +18,7 @@ BEGIN;
 INSERT INTO `user` (`id`, `phone`, `email`, `password`, `nickname`, `gender`, `head_img_id`, `enabled`, `locked`,
                     `created_date_time`, `updated_date_time`, `birthday`, `drive_size`, `drive_used`, `last_login_ip`,
                     `last_login_time`, `open_id`)
-VALUES (-1769983999, '13365917711', NULL, '$2a$10$gLHrfmHlcI5ZROwJ.VmhB.95xxeU4JeBNfIwcvO5JGsbhI4f9vX7m', '小破盘test',
+VALUES (-1769983999, '13365917711', NULL, '$2a$10$AFb3cPcxETmcIJXv5y1B..oj.AgGP0BjHiqjx4Ty6QUvUoWjXZ8ZS', '小破盘test',
         NULL, '2HFw0E94l9TJp8iqpMxtSyK8LBn', 1, 0, '2022-11-08 14:54:41', '2022-11-09 17:32:09', NULL, 10737418240,
         7268756, NULL, NULL, NULL);
 INSERT INTO `user` (`id`, `phone`, `email`, `password`, `nickname`, `gender`, `head_img_id`, `enabled`, `locked`,
