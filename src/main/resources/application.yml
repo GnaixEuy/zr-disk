@@ -22,7 +22,7 @@ spring:
     dbs:
   cache:
     redis:
-      time-to-live: 1800000
+      time-to-live: 86400000
 mybatis-plus:
   mapper-locations: classpath:cn/realandy/zrdisk/dao/impl/*.xml
   type-aliases-package: cn.realandy.zrdisk.entity

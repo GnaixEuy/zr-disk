@@ -39,7 +39,6 @@ public class AuthorController {
 
     @PostMapping(value = {"/login"})
     public ResponseResult<String> loginByPhone(@RequestBody LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
-        System.out.println(loginByPhoneAndPasswordRequest);
         return ResponseResult.success(this.loginService.getTokenByPhoneAndPassword(loginByPhoneAndPasswordRequest));
     }
 

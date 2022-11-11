@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -100,18 +99,23 @@ public class LoginServiceImpl implements LoginService {
         if (!registeredUserByPhoneRequest.getRealVerificationCode().equals(realVerificationCode)) {
             throw new BizException(ExceptionType.PHONE_VERIFICATION_CODE_ERROR);
         }
-        UserDetails user = this.userService.loadUserByUsername(registeredUserByPhoneRequest.getPhone());
+        User user = this.userService.getOne(
+                Wrappers.<User>lambdaQuery().eq(User::getPhone, registeredUserByPhoneRequest.getPhone())
+        );
         if (ObjectUtil.isNull(user)) {
+            String encodePassword = this.passwordEncoder.encode(registeredUserByPhoneRequest.getPassword());
             UserDto userDto = this.userService.addUser(new UserCreateRequest() {{
                 this.setPhone(registeredUserByPhoneRequest.getPhone());
-                this.setPassword(registeredUserByPhoneRequest.getPassword());
+                this.setPassword(encodePassword);
                 this.setNickname(registeredUserByPhoneRequest.getNickname());
                 this.setEnabled(true);
                 this.setLocked(false);
             }});
             user = this.userMapper.dto2Entity(userDto);
+        } else {
+            throw new BizException(ExceptionType.USER_NAME_DUPLICATE);
         }
-        return tokenVerifyAndGenerated((User) user);
+        return tokenVerifyAndGenerated(user);
     }
 
     /**
@@ -125,7 +129,7 @@ public class LoginServiceImpl implements LoginService {
         User user = this.userService.getOne(Wrappers
                 .<User>lambdaQuery()
                 .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone()));
-        if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), this.passwordEncoder.encode(loginByPhoneAndPasswordRequest.getPassword()))) {
+        if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), user.getPassword())) {
             throw new BizException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
         return tokenVerifyAndGenerated(user);
@@ -138,14 +142,6 @@ public class LoginServiceImpl implements LoginService {
         if (!user.isAccountNonLocked()) {
             throw new BizException(ExceptionType.USER_LOCKED);
         }
-        this.redisConfig
-                .getRedisTemplateByDb(RedisDbType.USER_INFO.getCode())
-                .opsForValue()
-                .set(user.getPhone(),
-                        user,
-                        SecurityConfig.EXPIRATION_TIME,
-                        TimeUnit.MILLISECONDS
-                );
         return JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConfig.EXPIRATION_TIME))

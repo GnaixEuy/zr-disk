@@ -48,7 +48,6 @@ public class User implements UserDetails, Serializable {
     private String nickname;
     @TableField
     private Gender gender;
-
     @TableField
     private boolean enabled;
     @TableField
