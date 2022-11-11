@@ -170,7 +170,6 @@ public class FileController {
 
     @PutMapping(value = {"/move"})
     public ResponseResult<String> fileMove(@RequestBody FileMoveRequest fileMoveRequest) {
-        System.out.println(fileMoveRequest);
         if (!this.fileService.moveFile(fileMoveRequest)) {
             throw new BizException(ExceptionType.FILE_UPDATE_ERROR);
         }

@@ -38,14 +38,57 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 )
 public class SecurityConfig {
 
-    public static final String SECRET = "RedBook";
-    public static final long EXPIRATION_TIME = 864000000;
+    public static final String SECRET = "zr-disk";
+    public static final long EXPIRATION_TIME = 86400000;
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER_STRING = "Authorization";
-
+    public static final String CREATE_TOKEN_URL = "/author/**";
+    public static final String API_DOC_URL = "/swagger/**";
     private UserService userService;
     private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private AuthenticationConfiguration authenticationConfiguration;
+
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf().disable()
+                // 下面开始设置权限
+                .authorizeRequests(authorize -> authorize
+                                // 请求放开
+                                .antMatchers(
+                                        SecurityConfig.CREATE_TOKEN_URL,
+                                        SecurityConfig.API_DOC_URL
+                                ).permitAll()
+                                //暂时开放
+                                // 其他地址的访问均需验证权限
+//                        .antMatchers("/**").permitAll()
+                                .anyRequest()
+                                .authenticated()
+                )
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(this.restAuthenticationEntryPoint)
+                .and()
+                // 添加 JWT 过滤器，JWT 过滤器在用户名密码认证过滤器之前
+                .addFilterBefore(new JWTAuthenticationFilter(this.authenticationManager(), this.userService), UsernamePasswordAuthenticationFilter.class)
+                // 认证用户时用户信息加载配置，注入springAuthUserService
+                .userDetailsService(this.userService)
+                .build();
+    }
+
+    /**
+     * 配置跨源访问(CORS)
+     *
+     * @return
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+        return source;
+    }
 
 
     /**
@@ -68,47 +111,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
-    @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf().disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(this.restAuthenticationEntryPoint)
-                .and()
-                // 下面开始设置权限
-                .authorizeRequests(authorize -> authorize
-                        // 请求放开
-                        .antMatchers("/author/**").permitAll()
-                        .antMatchers("/swagger").permitAll()
-                        //暂时开放
-                        // 其他地址的访问均需验证权限
-                        .antMatchers("/**").permitAll()
-                        .anyRequest()
-                        .authenticated()
-                )
-                // 添加 JWT 过滤器，JWT 过滤器在用户名密码认证过滤器之前
-                .addFilterBefore(new JWTAuthenticationFilter(this.authenticationManager(), this.userService), UsernamePasswordAuthenticationFilter.class)
-                // 认证用户时用户信息加载配置，注入springAuthUserService
-                .userDetailsService(this.userService)
-                .build();
-    }
-
-    /**
-     * 配置跨源访问(CORS)
-     *
-     * @return
-     */
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-        return source;
-    }
-
 
     @Autowired
     public void setUserService(UserService userService) {

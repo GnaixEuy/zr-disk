@@ -75,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     public UserDto addUser(UserCreateRequest userCreateRequest) {
         User user = this.userMapper.userCreateRequst2Entity(userCreateRequest);
         user.setCreatedDateTime(new Date());
-        user.setPassword(this.passwordEncoder.encode(userCreateRequest.getPassword()));
+        user.setPassword(userCreateRequest.getPassword());
         //TODO 改为配置
         user.setDriveSize(new BigDecimal("5368709120"));
         int result = this.baseMapper.insert(user);

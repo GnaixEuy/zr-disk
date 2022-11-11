@@ -29,8 +29,8 @@ public class TencentCosConfig {
     private TencentCos tencentCos;
 
     @Bean
-    @Qualifier(COS_ATTACHMENT)
     @Primary
+    @Qualifier(COS_ATTACHMENT)
     public COSClient getCoSClient() {
         //初始化用户身份信息
         BasicCOSCredentials cosCredentials = new BasicCOSCredentials(tencentCos.getSecretId(), tencentCos.getSecretKey());

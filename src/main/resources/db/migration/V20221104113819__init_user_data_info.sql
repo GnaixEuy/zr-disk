@@ -1,6 +1,6 @@
--- ----------------------------
--- Records of role
--- ----------------------------
+# -- ----------------------------
+# -- Records of role
+# -- ----------------------------
 BEGIN;
 INSERT INTO `role` (`id`, `name`, `title`, `created_date_time`, `updated_date_time`)
 VALUES (1, 'ROLE_USER', '普通用户', '2021-07-21 09:27:12.260000', '2021-07-21 09:27:12.260000');
@@ -9,11 +9,11 @@ VALUES (2, 'ROLE_ADMIN', '超级管理员', '2021-07-21 09:27:12.260000', '2021-
 INSERT INTO `role` (`id`, `name`, `title`, `created_date_time`, `updated_date_time`)
 VALUES (3, 'ROLE_VIP', 'VIP', '2021-07-21 09:27:12.260000', '2021-07-21 09:27:12.260000');
 COMMIT;
-
-
--- ----------------------------
--- Records of user
--- ----------------------------
+#
+#
+# -- ----------------------------
+# -- Records of user
+# -- ----------------------------
 BEGIN;
 INSERT INTO `user` (`id`, `phone`, `email`, `password`, `nickname`, `gender`, `head_img_id`, `enabled`, `locked`,
                     `created_date_time`, `updated_date_time`, `birthday`, `drive_size`, `drive_used`, `last_login_ip`,
@@ -92,10 +92,10 @@ VALUES (10, '769-496-2416', 'wujie@yahoo.com', 'tFN4LVR6U8', '吴杰宏', 1, NUL
         '2010-04-30 15:03:59.000000',
         'qBVsHqUs4S');
 COMMIT;
-
--- ----------------------------
--- Records of user_role_associated
--- ----------------------------
+#
+# -- ----------------------------
+# -- Records of user_role_associated
+# -- ----------------------------
 BEGIN;
 INSERT INTO `user_role_associated` (`user_id`, `role_id`)
 VALUES (-1769983999, 1);

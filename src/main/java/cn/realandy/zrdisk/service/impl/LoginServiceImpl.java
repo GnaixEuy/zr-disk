@@ -102,9 +102,10 @@ public class LoginServiceImpl implements LoginService {
         }
         UserDetails user = this.userService.loadUserByUsername(registeredUserByPhoneRequest.getPhone());
         if (ObjectUtil.isNull(user)) {
+            String encodePassword = this.passwordEncoder.encode(registeredUserByPhoneRequest.getPassword());
             UserDto userDto = this.userService.addUser(new UserCreateRequest() {{
                 this.setPhone(registeredUserByPhoneRequest.getPhone());
-                this.setPassword(registeredUserByPhoneRequest.getPassword());
+                this.setPassword(encodePassword);
                 this.setNickname(registeredUserByPhoneRequest.getNickname());
                 this.setEnabled(true);
                 this.setLocked(false);
@@ -125,7 +126,7 @@ public class LoginServiceImpl implements LoginService {
         User user = this.userService.getOne(Wrappers
                 .<User>lambdaQuery()
                 .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone()));
-        if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), this.passwordEncoder.encode(loginByPhoneAndPasswordRequest.getPassword()))) {
+        if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), user.getPassword())) {
             throw new BizException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
         return tokenVerifyAndGenerated(user);
@@ -138,14 +139,6 @@ public class LoginServiceImpl implements LoginService {
         if (!user.isAccountNonLocked()) {
             throw new BizException(ExceptionType.USER_LOCKED);
         }
-        this.redisConfig
-                .getRedisTemplateByDb(RedisDbType.USER_INFO.getCode())
-                .opsForValue()
-                .set(user.getPhone(),
-                        user,
-                        SecurityConfig.EXPIRATION_TIME,
-                        TimeUnit.MILLISECONDS
-                );
         return JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConfig.EXPIRATION_TIME))
