@@ -20,9 +20,11 @@ spring:
     port: ${REDIS_PORT}
     password: ${REDIS_PASSWD}
     dbs: ${REDIS_DBS}
-#mybatis-plus:
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+fdfs:
+  tracker-list: ${FASTDFS_HOST}:22122
 aliyun:
   accessKeyId: ${ALIYUN_ACCESS_KEY_ID}
   secret: ${ALIYUN_SECRET}
@@ -38,14 +40,16 @@ alipay:
   publicKey: ${ALIPAY_PUBLIC_KEY}
   # 订单支付成功后的回调地址(内网映射)
   notifyUrl: ${ALIPAY_NOTIFY_URL}
-  # 跳转返回页面不可为本地页面，例如；http://127.0.0.1:8020/test/order.html 支付宝校验时会将当前订单视作有操作风险
+  # 跳转页面地址
   returnUrl: ${ALIPAY_RETURN_URL}
-tencent:
-  cos:
-    app-id: ${COS_ID}
-    bucket-name: ${COS_BUCKET}
-    region-id: ${COS_REGION}
-    secret-id: ${COS_SECRET_ID}
-    secret-key: ${COS_SECRET_KEY}
-    base-url: ${COS_BASE_URL}
+  # 支付宝网关
+  GATEWAY_URL: ${GATEWAY_URL}
+  # 数据格式
+  FORMAT: "JSON"
+  # 字符集
+  CHARSET: "UTF-8"
+  # 密钥加密方式
+  SIGN_TYPE: "RSA2"
+
+
 
