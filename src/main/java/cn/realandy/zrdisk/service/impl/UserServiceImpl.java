@@ -157,6 +157,14 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
+     * 用户登出
+     */
+    @Override
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone")
+    public void logout() {
+    }
+
+    /**
      * 更新用户密码
      *
      * @param password 密码

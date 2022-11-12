@@ -57,7 +57,8 @@ public class SecurityConfig {
                                 // 请求放开
                                 .antMatchers(
                                         SecurityConfig.CREATE_TOKEN_URL,
-                                        SecurityConfig.API_DOC_URL
+                                        SecurityConfig.API_DOC_URL,
+                                        "/yiyan/**"
                                 ).permitAll()
                                 //暂时开放
                                 // 其他地址的访问均需验证权限

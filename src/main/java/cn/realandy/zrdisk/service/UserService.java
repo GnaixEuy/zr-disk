@@ -57,4 +57,9 @@ public interface UserService extends IService<User>, UserDetailsService {
      */
     boolean findPass(FindPassRequest findPassRequest);
 
+    /**
+     * 用户登出
+     */
+    void logout();
+
 }

@@ -84,6 +84,12 @@ public class UserController {
         return ResponseResult.success(this.userService.getCurrentUserDto().getDriveUsed().longValue());
     }
 
+    @GetMapping(value = {"/logout"})
+    public ResponseResult<String> userLogout() {
+        this.userService.logout();
+        return ResponseResult.success("登出成功");
+    }
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
