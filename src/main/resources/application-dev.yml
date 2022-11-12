@@ -18,7 +18,7 @@ spring:
   redis:
     host: ${REDIS_HOST}
     port: ${REDIS_PORT}
-    password:
+    password: ${REDIS_PASSWD}
     dbs: ${REDIS_DBS}
 mybatis-plus:
   configuration:
