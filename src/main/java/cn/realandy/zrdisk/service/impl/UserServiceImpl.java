@@ -3,17 +3,22 @@ package cn.realandy.zrdisk.service.impl;
 import cn.realandy.zrdisk.config.RedisConfig;
 import cn.realandy.zrdisk.dao.RoleDao;
 import cn.realandy.zrdisk.dao.UserDao;
+import cn.realandy.zrdisk.dao.relation.UserFollowDao;
 import cn.realandy.zrdisk.dao.relation.UserRoleAssociatedDao;
 import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.enmus.RedisDbType;
+import cn.realandy.zrdisk.entity.File;
 import cn.realandy.zrdisk.entity.Role;
+import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.entity.User;
+import cn.realandy.zrdisk.entity.relation.UserFollow;
 import cn.realandy.zrdisk.entity.relation.UserRoleAssociated;
 import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.FindPassRequest;
+import cn.realandy.zrdisk.vo.FollowRequest;
 import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -36,6 +41,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -59,6 +65,9 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     private PasswordEncoder passwordEncoder;
     private RedisConfig redisConfig;
     private UserDao userDao;
+    private UserFollowDao userFollowDao;
+
+    private TencentCos tencentCos;
 
 
     /**
@@ -261,6 +270,90 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
+     * 关注用户
+     *
+     * @return 是否成功
+     */
+    @Override
+    public boolean follow(FollowRequest followRequest) {
+        User currentUser = this.getCurrentUser();
+        System.out.println(followRequest.getIsFollow());
+        if ("关注".equals(followRequest.getIsFollow())) {
+            User user = this.baseMapper.selectById(followRequest.getId());
+            if (user == null) {
+                throw new BizException(ExceptionType.USER_NOT_FOUND);
+            }
+            return 1 == this.userFollowDao.insert(new UserFollow(currentUser.getId(), followRequest.getId()));
+        } else {
+            return 1 == this.userFollowDao.delete(Wrappers.<UserFollow>lambdaUpdate().eq(UserFollow::getUserId, currentUser.getId()).eq(UserFollow::getFollowerId, followRequest.getId()));
+        }
+    }
+
+    /**
+     * 获取关注的人
+     *
+     * @return list
+     */
+    @Override
+    public List<UserDto> getFollowers() {
+        User currentUser = this.getCurrentUser();
+        List<UserFollow> userFollows = this.userFollowDao.selectList(Wrappers.<UserFollow>lambdaQuery().eq(UserFollow::getUserId, currentUser.getId()));
+        if (userFollows.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> integers = new ArrayList<>();
+        userFollows.forEach(item -> {
+            integers.add(item.getFollowerId());
+        });
+        List<UserDto> collect = this.listByIds(integers).stream().map(this.userMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            File headImg = item.getHeadImg();
+            headImg.setDownloadUrl(this.tencentCos.getBaseUrl() + headImg.getDownloadUrl());
+        });
+        return collect;
+    }
+
+    /**
+     * 是否关注
+     *
+     * @param id
+     */
+    @Override
+    public boolean isFollow(Integer id) {
+        User currentUser = this.getCurrentUser();
+        if (this.userFollowDao.selectOne(Wrappers.<UserFollow>lambdaQuery().eq(UserFollow::getUserId, currentUser.getId()).eq(UserFollow::getFollowerId, id)) != null) {
+            return true;
+        }
+        return false;
+
+    }
+
+    /**
+     * 获取粉丝
+     *
+     * @return list
+     */
+    @Override
+    public List<UserDto> getFans() {
+        User currentUser = this.getCurrentUser();
+        List<UserFollow> userFans = this.userFollowDao.selectList(Wrappers.<UserFollow>lambdaQuery().eq(UserFollow::getFollowerId, currentUser.getId()));
+        if (userFans.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> integers = new ArrayList<>();
+        userFans.forEach(item -> {
+            System.out.println(item);
+            integers.add(item.getUserId());
+        });
+        List<UserDto> collect = this.listByIds(integers).stream().map(this.userMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            File headImg = item.getHeadImg();
+            headImg.setDownloadUrl(this.tencentCos.getBaseUrl() + headImg.getDownloadUrl());
+        });
+        return collect;
+    }
+
+    /**
      * 后台用户修改
      *
      * @param userMapper
@@ -296,5 +389,15 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     @Autowired
     public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
+    }
+
+    @Autowired
+    public void setUserFollowDao(UserFollowDao userFollowDao) {
+        this.userFollowDao = userFollowDao;
+    }
+
+    @Autowired
+    public void setTencentCos(TencentCos tencentCos) {
+        this.tencentCos = tencentCos;
     }
 }

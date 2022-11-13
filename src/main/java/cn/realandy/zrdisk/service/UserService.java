@@ -3,6 +3,7 @@ package cn.realandy.zrdisk.service;
 import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.vo.FindPassRequest;
+import cn.realandy.zrdisk.vo.FollowRequest;
 import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -90,4 +91,31 @@ public interface UserService extends IService<User>, UserDetailsService {
      */
     boolean updateUserBasicInfo(UpdateUserBasicInfoRequest updateUserBasicInfoRequest);
 
+    /**
+     * 关注用户
+     *
+     * @return 是否成功
+     */
+    boolean follow(FollowRequest followRequest);
+
+    /**
+     * 获取关注的人
+     *
+     * @return list
+     */
+    List<UserDto> getFollowers();
+
+    /**
+     * 是否关注
+     *
+     * @param id
+     */
+    boolean isFollow(Integer id);
+
+    /**
+     * 获取粉丝
+     *
+     * @return list
+     */
+    List<UserDto> getFans();
 }

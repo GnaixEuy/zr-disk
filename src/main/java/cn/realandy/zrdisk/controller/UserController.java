@@ -2,6 +2,7 @@ package cn.realandy.zrdisk.controller;
 
 import cn.hutool.json.JSONUtil;
 import cn.realandy.zrdisk.config.RedisConfig;
+import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.entity.File;
 import cn.realandy.zrdisk.entity.TencentCos;
 import cn.realandy.zrdisk.entity.User;
@@ -9,9 +10,11 @@ import cn.realandy.zrdisk.exception.BizException;
 import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
+import cn.realandy.zrdisk.vo.FollowRequest;
 import cn.realandy.zrdisk.vo.ResponseResult;
 import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserVo;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.security.RolesAllowed;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -116,6 +120,42 @@ public class UserController {
         return ResponseResult.success("更新成功");
     }
 
+    @GetMapping(value = {"/searchUser/{phone}"})
+    public ResponseResult<UserVo> searchUser(@PathVariable String phone) {
+        User one = this.userService.getOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, phone));
+        if (one == null) {
+            throw new BizException(ExceptionType.USER_NOT_FOUND);
+        }
+        UserDto userDto = this.userMapper.entity2Dto(one);
+        if (userDto.getHeadImg() != null) {
+            userDto.getHeadImg().setDownloadUrl(this.tencentCos.getBaseUrl() + userDto.getHeadImg().getDownloadUrl());
+        }
+        return ResponseResult.success(this.userMapper.dto2Vo(userDto));
+    }
+
+    @GetMapping(value = {"/isFollow/{id}"})
+    public ResponseResult<Boolean> isFollower(@PathVariable Integer id) {
+        return ResponseResult.success(this.userService.isFollow(id));
+    }
+
+    @PostMapping(value = {"/follow"})
+    public ResponseResult<String> follow(@RequestBody FollowRequest followRequest) {
+        System.out.println(followRequest);
+        if (!this.userService.follow(followRequest)) {
+            return ResponseResult.error("关注失败");
+        }
+        return ResponseResult.success("关注成功");
+    }
+
+    @GetMapping(value = {"/getFollowers"})
+    public ResponseResult<List<UserVo>> getFollowers() {
+        return ResponseResult.success(this.userService.getFollowers().stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
+    }
+
+    @GetMapping(value = {"/getFans"})
+    public ResponseResult<List<UserVo>> getFans() {
+        return ResponseResult.success(this.userService.getFans().stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
+    }
 
     @Autowired
     public void setUserService(UserService userService) {
