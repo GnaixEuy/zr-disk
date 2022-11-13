@@ -70,6 +70,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
     private KsuidIdentifierGenerator ksuidIdentifierGenerator;
     private CosUploadUtil cosUploadUtil;
     private TencentCos tencentCos;
+    private FileDao fileDao;
 
     /**
      * 保存用户头像
@@ -491,6 +492,8 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         return 1 == this.baseMapper.updateById(file);
     }
 
+
+
     // 递归查找所有菜单的子菜单
     private List<FileParentChildDto> getChildrens(FileParentChildDto root, List<FileParentChildDto> all) {
         return all.stream().filter(categoryEntity -> {
@@ -502,11 +505,7 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
     }
 
 
-    private boolean updateUserDriveUsed(java.io.File file) {
-        User currentUser = this.userService.getCurrentUser();
-        currentUser.setDriveUsed(currentUser.getDriveUsed().add(BigDecimal.valueOf(file.length())));
-        return this.userService.updateById(currentUser);
-    }
+
 
     /**
      * 获取当前登录用户
@@ -536,6 +535,35 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         });
     }
 
+    private boolean updateUserDriveUsed(java.io.File file) {
+        User currentUser = this.userService.getCurrentUser();
+        currentUser.setDriveUsed(currentUser.getDriveUsed().add(BigDecimal.valueOf(file.length())));
+        return this.userService.updateById(currentUser);
+    }
+
+    //文件封禁状态切换
+    @Override
+    public boolean updateLocked(String id) {
+        QueryWrapper<File> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", id);
+        File file = fileDao.selectOne(queryWrapper);
+        file.setLocked(!file.isLocked());
+        int i = fileDao.updateById(file);
+        return i == 1;
+    }
+
+    //文件删除
+    @Override
+    public boolean updateDeleted(String id) {
+        QueryWrapper<File> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", id);
+        File file = fileDao.selectOne(queryWrapper);
+        file.setLocked(!file.isDelete());
+        int i = fileDao.updateById(file);
+        return i == 1;
+
+    }
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -559,5 +587,10 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
     @Autowired
     public void setTencentCos(TencentCos tencentCos) {
         this.tencentCos = tencentCos;
+    }
+
+    @Autowired
+    public void setFileDao(FileDao fileDao) {
+        this.fileDao = fileDao;
     }
 }

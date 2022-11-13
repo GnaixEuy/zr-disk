@@ -142,4 +142,20 @@ public interface FileService extends IService<File> {
      */
     boolean moveFile(FileMoveRequest fileMoveRequest);
 
+
+    /**
+     * 切换封禁状态
+     *
+     * @param id
+     * @return
+     */
+    boolean updateLocked(String id);
+
+    /**
+     *
+     * 删除
+     */
+
+    boolean updateDeleted(String id);
+
 }

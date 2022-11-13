@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -88,6 +90,20 @@ public class UserController {
     public ResponseResult<String> userLogout() {
         this.userService.logout();
         return ResponseResult.success("登出成功");
+    }
+
+    //前台获取全部用户接口
+    @GetMapping(value = {"/getAllUserInfo"})
+    public ResponseResult<List> getAllUserInfo() {
+        return ResponseResult.success(this.userService.getAllUserInfo());
+    }
+
+    //修改用户封禁状态
+    @PutMapping(value = "/updateLocked")
+    public ResponseResult<String> updateLocked(@RequestBody Map<String, Object> map) {
+        System.out.println(map);
+        boolean isOk = userService.updateLocked((Integer) (map.get("userid")));
+        return isOk? ResponseResult.success("修改成功"): ResponseResult.error("修改失败了！");
     }
 
     @Autowired

@@ -7,6 +7,8 @@ import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import java.util.List;
+
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
@@ -61,5 +63,24 @@ public interface UserService extends IService<User>, UserDetailsService {
      * 用户登出
      */
     void logout();
+
+    /**
+     * 获取全部用户信息
+     */
+
+    List<User> getAllUserInfo();
+
+    /**
+     * 后台修改用户封禁状态
+     */
+
+    boolean updateLocked(Integer userid);
+
+    /**
+     *
+     * 后台更新用户数据
+     */
+
+    int updateUser(User user);
 
 }

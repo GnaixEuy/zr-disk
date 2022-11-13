@@ -15,6 +15,7 @@ import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.FindPassRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -55,6 +57,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     private UserRoleAssociatedDao userRoleAssociateDao;
     private PasswordEncoder passwordEncoder;
     private RedisConfig redisConfig;
+    private UserDao userDao;
+
 
     /**
      * @param phone 手机号码作为用户名，手机必须绑定才能使用
@@ -165,6 +169,16 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
+     *
+     *
+     * @return 返回用户全部数据
+     */
+    @Override
+    public List<User> getAllUserInfo() {
+        return this.userDao.selectList(null);
+    }
+
+    /**
      * 更新用户密码
      *
      * @param password 密码
@@ -181,6 +195,46 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         }
         return true;
     }
+
+    /**
+     *后台用户封禁
+     * @param userid
+     * @return
+     */
+    @Override
+    public boolean updateLocked(Integer userid) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("id", userid);
+        User user = userDao.selectOne(queryWrapper);
+        user.setLocked(!user.isLocked());
+        int i = userDao.updateById(user);
+        return i == 1;
+    }
+
+    @Override
+    public int updateUser(User user) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("phone", user.getPhone());
+        User other = userDao.selectOne(queryWrapper);
+        if (other != null) {
+
+            if (!user.getId().equals(other.getId())) {
+                return -1;
+            }
+        }
+
+        if (user.getDriveSize().compareTo(user.getDriveUsed()) == -1) {
+            return -2;
+        }
+
+        return userDao.updateById(user);
+    }
+
+    /**
+     * 后台用户修改
+     * @param userMapper
+     */
+
 
     @Autowired
     public void setUserMapper(UserMapper userMapper) {
@@ -207,4 +261,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     public void setRedisConfig(RedisConfig redisConfig) {
         this.redisConfig = redisConfig;
     }
+
+    @Autowired
+    public void setUserDao(UserDao userDao) {this.userDao = userDao;}
 }

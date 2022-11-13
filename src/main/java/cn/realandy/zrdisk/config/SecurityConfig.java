@@ -53,6 +53,7 @@ public class SecurityConfig {
         return http
                 .csrf().disable()
                 // 下面开始设置权限
+
                 .authorizeRequests(authorize -> authorize
                                 // 请求放开
                                 .antMatchers(
@@ -72,6 +73,10 @@ public class SecurityConfig {
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .headers().frameOptions().disable()
+                .and()
+                .cors()
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(this.restAuthenticationEntryPoint)
