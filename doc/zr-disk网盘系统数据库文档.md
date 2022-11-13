@@ -4,7 +4,7 @@
 
 **文档版本：** 1.0.0
 
-**文档描述：** 数据库设计文档生成
+**文档描述：** zr-disk数据库设计
 
 | 表名                  | 说明       |
 | :---: | :---: |
@@ -12,6 +12,7 @@
 | [role](#role) | 角色权限表 |
 | [file](#file) | 文件表 |
 | [vip](#vip) | vip表 |
+| [user_follow](#user_follow) | 用户关注表 |
 | [user_role_associated](#user_role_associated) | 用户角色多对多关系表 |
 | [user_vip_associated](#user_vip_associated) | 用户和VIP多对多关系表 |
 | [vip_order](#vip_order) | VIP充值订单表 |
@@ -96,6 +97,17 @@
 |  2   | vip_name |   varchar   | 255 |   0    |    N     |  N   |       | vip名称  |
 |  3   | increase_drive_size |   double   | 23 |   0    |    N     |  N   |       | vip增加的存储空间  |
 |  4   | vip_month_price |   double   | 11 |   2    |    N     |  N   |       | vip月单价  |
+
+**表名：** <a id="user_follow">user_follow</a>
+
+**说明：** 用户关注表
+
+**数据列：**
+
+| 序号 | 名称 | 数据类型 |  长度  | 小数位 | 允许空值 | 主键 | 默认值 | 说明 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+|  1   | user_id |   int   | 10 |   0    |    Y     |  N   |       | 关注者id  |
+|  2   | follower_id |   int   | 10 |   0    |    Y     |  N   |       | 被关注者id  |
 
 **表名：** <a id="user_role_associated">user_role_associated</a>
 

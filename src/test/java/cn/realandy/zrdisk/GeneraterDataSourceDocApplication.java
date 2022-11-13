@@ -102,7 +102,7 @@ public class GeneraterDataSourceDocApplication {
                 // 版本
                 .version("1.0.0")
                 // 描述
-                .description("数据库设计文档生成")
+                .description("zr-disk数据库设计")
                 // 数据源
                 .dataSource(dataSource)
                 // 生成配置
