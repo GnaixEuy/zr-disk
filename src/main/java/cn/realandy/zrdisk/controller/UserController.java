@@ -10,6 +10,7 @@ import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.ResponseResult;
+import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserVo;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -103,8 +104,18 @@ public class UserController {
     public ResponseResult<String> updateLocked(@RequestBody Map<String, Object> map) {
         System.out.println(map);
         boolean isOk = userService.updateLocked((Integer) (map.get("userid")));
-        return isOk? ResponseResult.success("修改成功"): ResponseResult.error("修改失败了！");
+        return isOk ? ResponseResult.success("修改成功") : ResponseResult.error("修改失败了！");
     }
+
+    @PutMapping(value = {"/updateUserInfo"})
+    public ResponseResult<String> updateUserInfo(@RequestBody UpdateUserBasicInfoRequest updateUserBasicInfoRequest) {
+        System.out.println(updateUserBasicInfoRequest);
+        if (!this.userService.updateUserBasicInfo(updateUserBasicInfoRequest)) {
+            throw new BizException(ExceptionType.USER_UPDATE_ERROR);
+        }
+        return ResponseResult.success("更新成功");
+    }
+
 
     @Autowired
     public void setUserService(UserService userService) {

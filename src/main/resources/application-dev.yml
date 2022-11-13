@@ -7,6 +7,10 @@ spring:
     url: jdbc:${DATABASE_TYPE}://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     druid:
+      username: ${MYSQL_USERNAME}
+      password: ${MYSQL_PASSWORD}
+      url: jdbc:${DATABASE_TYPE}://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?characterEncoding=UTF8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      driver-class-name: com.mysql.cj.jdbc.Driver
       max-active: 20
   flyway:
     enabled: true
@@ -21,8 +25,8 @@ spring:
     password: ${REDIS_PASSWD}
     dbs: ${REDIS_DBS}
 mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 fdfs:
   tracker-list: ${FASTDFS_HOST}:22122
 aliyun:

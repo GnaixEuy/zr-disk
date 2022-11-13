@@ -153,6 +153,25 @@
             <artifactId>ffmpeg-platform</artifactId>
             <version>3.4.2-1.4.1</version>
         </dependency>
+        <!--cos文件上传-->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+            <version>5.6.109</version>
+        </dependency>
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos-sts_api</artifactId>
+            <version>3.1.1</version>
+        </dependency>
+        <!-- 引入数据库表结构文档生成器Screw依赖-->
+        <dependency>
+            <groupId>cn.smallbun.screw</groupId>
+            <artifactId>screw-core</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

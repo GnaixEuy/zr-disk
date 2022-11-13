@@ -3,6 +3,7 @@ package cn.realandy.zrdisk.service;
 import cn.realandy.zrdisk.dto.UserDto;
 import cn.realandy.zrdisk.entity.User;
 import cn.realandy.zrdisk.vo.FindPassRequest;
+import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -77,10 +78,16 @@ public interface UserService extends IService<User>, UserDetailsService {
     boolean updateLocked(Integer userid);
 
     /**
-     *
      * 后台更新用户数据
      */
 
     int updateUser(User user);
+
+    /**
+     * 修改用户本身基本信息
+     *
+     * @param updateUserBasicInfoRequest
+     */
+    boolean updateUserBasicInfo(UpdateUserBasicInfoRequest updateUserBasicInfoRequest);
 
 }

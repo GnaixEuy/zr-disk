@@ -14,6 +14,7 @@ import cn.realandy.zrdisk.exception.ExceptionType;
 import cn.realandy.zrdisk.mapper.UserMapper;
 import cn.realandy.zrdisk.service.UserService;
 import cn.realandy.zrdisk.vo.FindPassRequest;
+import cn.realandy.zrdisk.vo.UpdateUserBasicInfoRequest;
 import cn.realandy.zrdisk.vo.UserCreateRequest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -169,8 +170,6 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
-     *
-     *
      * @return 返回用户全部数据
      */
     @Override
@@ -197,7 +196,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
-     *后台用户封禁
+     * 后台用户封禁
+     *
      * @param userid
      * @return
      */
@@ -231,7 +231,38 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
+     * 修改用户本身基本信息
+     *
+     * @param updateUserBasicInfoRequest
+     */
+    @Override
+    @CacheEvict(cacheNames = {"userInfo"}, key = "target.getCurrentUser.phone", beforeInvocation = true)
+    public boolean updateUserBasicInfo(UpdateUserBasicInfoRequest updateUserBasicInfoRequest) {
+        User currentUser = this.getCurrentUser();
+        if (currentUser == null) {
+            throw new BizException(ExceptionType.USER_NOT_FOUND);
+        }
+        if (updateUserBasicInfoRequest.getBirthday() != null) {
+            currentUser.setBirthday(updateUserBasicInfoRequest.getBirthday());
+        }
+        if (updateUserBasicInfoRequest.getGender() != null) {
+            currentUser.setGender(updateUserBasicInfoRequest.getGender());
+        }
+        if (updateUserBasicInfoRequest.getPhone() != null) {
+            currentUser.setPhone(updateUserBasicInfoRequest.getPhone());
+        }
+        if (updateUserBasicInfoRequest.getEmail() != null) {
+            currentUser.setEmail(updateUserBasicInfoRequest.getEmail());
+        }
+        if (updateUserBasicInfoRequest.getNickname() != null) {
+            currentUser.setNickname(updateUserBasicInfoRequest.getNickname());
+        }
+        return 1 == this.baseMapper.updateById(currentUser);
+    }
+
+    /**
      * 后台用户修改
+     *
      * @param userMapper
      */
 
@@ -263,5 +294,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     @Autowired
-    public void setUserDao(UserDao userDao) {this.userDao = userDao;}
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
+    }
 }

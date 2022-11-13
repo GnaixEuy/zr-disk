@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.Map;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -53,19 +52,17 @@ public class AdminUserController {
     @PostMapping(value = {"/updateUser"})
     public ResponseResult<String> updateUser(@RequestBody User user) {
         System.out.println(user.getBirthday());
+        //TODO 为啥不用switch或者直接抛出异常机制，异常机制捕获后前端直接打印error 里的trackTree
         int result = this.userService.updateUser(user);
         if (result == 1) {
             return ResponseResult.success("用户修改成功");
-        } else if (result == -1){
+        } else if (result == -1) {
             return ResponseResult.error("该手机号已经被他人使用");
-        } else if (result == -2){
+        } else if (result == -2) {
             return ResponseResult.error("可用空间 不得小于 已使用空间！");
         } else {
             return ResponseResult.error("用户修改失败了");
         }
-
-
-
     }
 
 
