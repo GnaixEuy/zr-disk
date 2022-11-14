@@ -63,10 +63,11 @@ public class SecurityConfig {
                                 ).permitAll()
                                 //暂时开放
                                 // 其他地址的访问均需验证权限
-//                        .antMatchers("/**").permitAll()
+                        .antMatchers("/druid/**").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
+
                 .headers()
                 .frameOptions()
                 .disable()
