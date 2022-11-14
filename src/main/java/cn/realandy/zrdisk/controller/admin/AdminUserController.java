@@ -33,6 +33,7 @@ public class AdminUserController {
     @RolesAllowed(value = {"ROLE_ADMIN"})
     public ResponseResult<Page<User>> getAllUsers(Page<User> page) {
 
+
         return ResponseResult.success(this.userService.page(page));
     }
 
@@ -43,6 +44,8 @@ public class AdminUserController {
         System.out.println(phone);
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.like("phone", phone);
+        User currentUser = this.userService.getCurrentUser();
+        queryWrapper.ne("phone", currentUser.getPhone());
 
         return ResponseResult.success(this.userService.page(page, queryWrapper));
     }
