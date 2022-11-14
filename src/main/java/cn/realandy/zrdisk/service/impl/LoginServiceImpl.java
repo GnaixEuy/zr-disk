@@ -22,10 +22,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -125,7 +127,8 @@ public class LoginServiceImpl implements LoginService {
      * @return token
      */
     @Override
-    public String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
+    @CacheEvict(cacheNames = {"userInfo"}, key = "#loginByPhoneAndPasswordRequest.phone")
+    public String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest, HttpServletRequest httpServletRequest) {
         User user = this.userService.getOne(Wrappers
                 .<User>lambdaQuery()
                 .eq(User::getPhone, loginByPhoneAndPasswordRequest.getPhone())
@@ -136,6 +139,9 @@ public class LoginServiceImpl implements LoginService {
         if (!passwordEncoder.matches(loginByPhoneAndPasswordRequest.getPassword(), user.getPassword())) {
             throw new BizException(ExceptionType.USER_PASSWORD_NOT_MATCH);
         }
+        user.setLastLoginIp(httpServletRequest.getRemoteAddr());
+        user.setLastLoginTime(new Date());
+        this.userService.updateById(user);
         return tokenVerifyAndGenerated(user);
     }
 

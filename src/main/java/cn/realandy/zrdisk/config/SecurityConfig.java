@@ -59,7 +59,8 @@ public class SecurityConfig {
                                 .antMatchers(
                                         SecurityConfig.CREATE_TOKEN_URL,
                                         SecurityConfig.API_DOC_URL,
-                                        "/yiyan/**"
+                                        "/yiyan/**",
+                                        "/druid/**"
                                 ).permitAll()
                                 //暂时开放
                                 // 其他地址的访问均需验证权限

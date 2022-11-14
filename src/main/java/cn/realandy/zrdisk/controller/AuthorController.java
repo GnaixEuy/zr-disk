@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
@@ -41,8 +43,8 @@ public class AuthorController {
     }
 
     @PostMapping(value = {"/login"})
-    public ResponseResult<String> loginByPhone(@RequestBody LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest) {
-        return ResponseResult.success(this.loginService.getTokenByPhoneAndPassword(loginByPhoneAndPasswordRequest));
+    public ResponseResult<String> loginByPhone(@RequestBody LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest, HttpServletRequest httpServletRequest) {
+        return ResponseResult.success(this.loginService.getTokenByPhoneAndPassword(loginByPhoneAndPasswordRequest, httpServletRequest));
     }
 
     @PutMapping(value = {"/findPass"})

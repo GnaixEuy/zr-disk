@@ -3,6 +3,8 @@ package cn.realandy.zrdisk.service;
 import cn.realandy.zrdisk.vo.LoginByPhoneAndPasswordRequest;
 import cn.realandy.zrdisk.vo.RegisteredUserByPhoneRequest;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
  *
@@ -37,7 +39,7 @@ public interface LoginService {
      * @param loginByPhoneAndPasswordRequest 手机号和密码封包
      * @return token
      */
-    String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest);
+    String getTokenByPhoneAndPassword(LoginByPhoneAndPasswordRequest loginByPhoneAndPasswordRequest, HttpServletRequest httpServletRequest);
 
 }
 
