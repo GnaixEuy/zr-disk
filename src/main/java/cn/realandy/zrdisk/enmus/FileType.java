@@ -27,9 +27,14 @@ public enum FileType {
     AUDIO(1, "audio"),
     IMAGE(2, "image"),
     VIDEO(3, "video"),
-    ZIP(4, "压缩文件"),
+    ZIP(4, "zip"),
     DOC(5, "doc"),
-    DIR(6, "folder");
+    DIR(6, "folder"),
+    EXE(7, "exe"),
+    PPT(8, "ppt"),
+    PDF(9, "pdf"),
+    TXT(10, "txt");
+
 
     @EnumValue
     private Integer key;

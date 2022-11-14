@@ -118,4 +118,13 @@ public interface UserService extends IService<User>, UserDetailsService {
      * @return list
      */
     List<UserDto> getFans();
+
+    /**
+     * 获取粉丝
+     *
+     * @return list
+     */
+    List<UserDto> getFansById(Integer id);
+
+    List<UserDto> getFollowersById(Integer id);
 }

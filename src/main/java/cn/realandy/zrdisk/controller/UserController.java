@@ -87,8 +87,8 @@ public class UserController {
     }
 
     @GetMapping(value = {"/getUsedDrive"})
-    public ResponseResult<Long> getUsedDrive() {
-        return ResponseResult.success(this.userService.getCurrentUserDto().getDriveUsed().longValue());
+    public ResponseResult<UserDto> getUsedDrive() {
+        return ResponseResult.success(this.userService.getCurrentUserDto());
     }
 
     @GetMapping(value = {"/logout"})
@@ -152,9 +152,20 @@ public class UserController {
         return ResponseResult.success(this.userService.getFollowers().stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
     }
 
+    @GetMapping(value = {"/getFollowersById/{id}"})
+    public ResponseResult<List<UserVo>> getFollowersById(@PathVariable Integer id) {
+        return ResponseResult.success(this.userService.getFollowersById(id).stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
+    }
+
+
     @GetMapping(value = {"/getFans"})
     public ResponseResult<List<UserVo>> getFans() {
         return ResponseResult.success(this.userService.getFans().stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
+    }
+
+    @GetMapping(value = {"/getFansById/{id}"})
+    public ResponseResult<List<UserVo>> getFansById(@PathVariable Integer id) {
+        return ResponseResult.success(this.userService.getFansById(id).stream().map(this.userMapper::dto2Vo).collect(Collectors.toList()));
     }
 
     @Autowired

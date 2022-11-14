@@ -31,6 +31,22 @@ public class FileTypeTransformer {
             return FileType.ZIP;
         }
 
+        if (isDoc(ext)) {
+            return FileType.DOC;
+        }
+
+        if (isEXE(ext)) {
+            return FileType.EXE;
+        }
+        if (isPPT(ext)) {
+            return FileType.PPT;
+        }
+        if (isPDF(ext)) {
+            return FileType.PDF;
+        }
+        if (isTXT(ext)) {
+            return FileType.TXT;
+        }
         return FileType.OTHER;
     }
 
@@ -78,4 +94,53 @@ public class FileTypeTransformer {
         return Boolean.FALSE;
     }
 
+    private static Boolean isDoc(String ext) {
+        String[] videoExt = {"doc", "docx"};
+        for (String perExt : videoExt) {
+            if (perExt.equals(ext)) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    private static Boolean isEXE(String ext) {
+        String[] videoExt = {"xls", "xlsx"};
+        for (String perExt : videoExt) {
+            if (perExt.equals(ext)) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    private static Boolean isPDF(String ext) {
+        String[] videoExt = {"pdf"};
+        for (String perExt : videoExt) {
+            if (perExt.equals(ext)) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    private static Boolean isPPT(String ext) {
+        String[] videoExt = {"ppt", "pptx"};
+        for (String perExt : videoExt) {
+            if (perExt.equals(ext)) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    private static Boolean isTXT(String ext) {
+        String[] videoExt = {"txt"};
+        for (String perExt : videoExt) {
+            if (perExt.equals(ext)) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
 }

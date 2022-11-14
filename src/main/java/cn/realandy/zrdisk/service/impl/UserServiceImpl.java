@@ -354,6 +354,50 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
     }
 
     /**
+     * 获取粉丝
+     *
+     * @param id
+     * @return list
+     */
+    @Override
+    public List<UserDto> getFansById(Integer id) {
+        List<UserFollow> userFans = this.userFollowDao.selectList(Wrappers.<UserFollow>lambdaQuery().eq(UserFollow::getFollowerId, id));
+        if (userFans.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> integers = new ArrayList<>();
+        userFans.forEach(item -> {
+            System.out.println(item);
+            integers.add(item.getUserId());
+        });
+        List<UserDto> collect = this.listByIds(integers).stream().map(this.userMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            File headImg = item.getHeadImg();
+            headImg.setDownloadUrl(this.tencentCos.getBaseUrl() + headImg.getDownloadUrl());
+        });
+        return collect;
+    }
+
+    @Override
+    public List<UserDto> getFollowersById(Integer id) {
+        User currentUser = this.getCurrentUser();
+        List<UserFollow> userFollows = this.userFollowDao.selectList(Wrappers.<UserFollow>lambdaQuery().eq(UserFollow::getUserId, id));
+        if (userFollows.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<Integer> integers = new ArrayList<>();
+        userFollows.forEach(item -> {
+            integers.add(item.getFollowerId());
+        });
+        List<UserDto> collect = this.listByIds(integers).stream().map(this.userMapper::entity2Dto).collect(Collectors.toList());
+        collect.forEach(item -> {
+            File headImg = item.getHeadImg();
+            headImg.setDownloadUrl(this.tencentCos.getBaseUrl() + headImg.getDownloadUrl());
+        });
+        return collect;
+    }
+
+    /**
      * 后台用户修改
      *
      * @param userMapper
