@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <img src="http://blog.gnaixeuy.cn/wp-content/uploads/2022/09/倒闭.png"/>
@@ -157,5 +158,11 @@ public interface FileService extends IService<File> {
      */
 
     boolean updateDeleted(String id);
+
+    /**
+     * 后台主页扇形图数据
+     */
+
+    List<Map<String, Object>> getTypePieInfo();
 
 }

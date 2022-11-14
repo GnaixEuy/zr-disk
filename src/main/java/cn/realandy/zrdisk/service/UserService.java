@@ -127,4 +127,6 @@ public interface UserService extends IService<User>, UserDetailsService {
     List<UserDto> getFansById(Integer id);
 
     List<UserDto> getFollowersById(Integer id);
+
+    double getAllUserDriveSize();
 }

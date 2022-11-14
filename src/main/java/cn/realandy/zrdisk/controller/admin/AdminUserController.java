@@ -68,6 +68,12 @@ public class AdminUserController {
         }
     }
 
+    @RolesAllowed(value = {"ROLE_ADMIN"})
+    @GetMapping(value = {"/getAllUserDriveSize"})
+    public ResponseResult<Double> getAllUserDriveSize() {
+        return ResponseResult.success(this.userService.getAllUserDriveSize());
+    }
+
 
     @RequestMapping(value = {"/logout"})
     public ResponseResult<String> logout() {

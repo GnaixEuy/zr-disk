@@ -45,10 +45,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -563,6 +560,50 @@ public class FileServiceImpl extends ServiceImpl<FileDao, File> implements FileS
         return i == 1;
 
     }
+
+    @Override
+    public List<Map<String, Object>> getTypePieInfo() {
+        QueryWrapper<File> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("type", 0);
+        QueryWrapper<File> queryWrapper2 = new QueryWrapper<>();
+        queryWrapper2.eq("type", 1);
+        QueryWrapper<File> queryWrapper3 = new QueryWrapper<>();
+        queryWrapper3.eq("type", 2);
+        QueryWrapper<File> queryWrapper4 = new QueryWrapper<>();
+        queryWrapper4.eq("type", 3);
+        QueryWrapper<File> queryWrapper5 = new QueryWrapper<>();
+        queryWrapper5.eq("type", 4);
+        List<File> l0 = fileDao.selectList(queryWrapper1);
+        List<File> l1 = fileDao.selectList(queryWrapper2);
+        List<File> l2 = fileDao.selectList(queryWrapper3);
+        List<File> l3 = fileDao.selectList(queryWrapper4);
+        List<File> l4 = fileDao.selectList(queryWrapper5);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> map1 = new HashMap<>();
+        map1.put("value", l0.size());
+        map1.put("name", "其他");
+        result.add(map1);
+        Map<String, Object> map2 = new HashMap<>();
+        map2.put("value", l1.size());
+        map2.put("name", "音频");
+        result.add(map2);
+        Map<String, Object> map3 = new HashMap<>();
+        map3.put("value", l2.size());
+        map3.put("name", "图片");
+        result.add(map3);
+        Map<String, Object> map4 = new HashMap<>();
+        map4.put("value", l3.size());
+        map4.put("name", "视频");
+        result.add(map4);
+        Map<String, Object> map5 = new HashMap<>();
+        map5.put("value", l4.size());
+        map5.put("name", "压缩文件");
+        result.add(map5);
+        return result;
+    }
+
+
 
     @Autowired
     public void setUserService(UserService userService) {

@@ -397,11 +397,22 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         return collect;
     }
 
-    /**
-     * 后台用户修改
-     *
-     * @param userMapper
-     */
+    public double getAllUserDriveSize() {
+        BigDecimal driveSize = new BigDecimal('0');
+
+
+
+
+        List<User> users = this.userDao.selectList(null);
+        for (User user: users ) {
+            driveSize = driveSize.add(user.getDriveSize());
+
+        }
+
+        double result = driveSize.doubleValue();
+        System.out.println(result);
+        return result;
+    }
 
 
     @Autowired
